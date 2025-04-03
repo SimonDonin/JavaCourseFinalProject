@@ -11,7 +11,7 @@ public class Board {
 	public Board(String name, int size) {
 		this.name = name;
 		this.size = size;
-	//should we include cells?
+	//should we include cells??
 		
 		
 	}
@@ -33,9 +33,3 @@ public class Board {
 }
 	
 	
-	
-	
-
-	
-	
-}
