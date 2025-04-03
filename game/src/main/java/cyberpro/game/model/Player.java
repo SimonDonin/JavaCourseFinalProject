@@ -3,7 +3,7 @@ package cyberpro.game.model;
 	import java.util.ArrayList;
 	import java.util.Set;
 
-	enum Color {Yellow, Green, Purple}; // change colors when we have sprite
+	enum Color {YELLOW, GREEN, PURPLE}; 
 	
 	public class Player {
 		
@@ -14,6 +14,7 @@ package cyberpro.game.model;
 	    private Coordinates coordinates;
 		private boolean isAlive;
 		private int speed;
+
 		Color color;
 		private ArrayList <Modifier> playerModifiers; 
 		
@@ -27,29 +28,40 @@ package cyberpro.game.model;
 		        this.playerModifiers = new ArrayList<>();
 		    }
 
+     public boolean moveDown() {
+		        coordinates.setY(coordinates.getY() + speed);
+		        return true;
+		    }
+		 
+		 public boolean moveUp() {
+		        coordinates.setX(coordinates.getX() - speed);
+		        return true;
+		    }
 
-		/*
-		 * public boolean moveUp() { coordinates[1] -= speed; return true; }
-		 * 
-		 * public boolean moveDown() { coordinates[1] += speed; return true; }
-		 * 
-		 * public boolean moveLeft() { coordinates[0] -= speed; return true; }
-		 * 
-		 * public boolean moveRight() { coordinates[0] += speed; return true; }
-		 */
+		 public boolean moveLeft() {
+		        coordinates.setX(coordinates.getX() - speed);
+		        return true;
+		    }
 
-		/*
-		 * public void addModifier(String modificator) {
-		 * playerModifiers.add(modificator); }
-		 */
+		 public boolean moveRight() {
+		        coordinates.setX(coordinates.getX() + speed);
+		        return true;
+		    }
 
-		 public void removeModifier(String modificator) {
-			 playerModifiers.remove(modificator);
-		 }
+		 public void addModifier(Modifier modificator) {
+		        playerModifiers.add(modificator);
+		    }
 
-		 public static Player findPlayerById(int id) {
-			 return null; 
-		  
-		 }
-	}
+		 public void removeModifier(Modifier modificator) {
+		        playerModifiers.remove(modificator);
+		    }
 
+		    
+		 public boolean isAlive() {
+		        return isAlive;
+		    }
+
+		 public void setAlive(boolean status) {
+		        this.isAlive = status;
+		    }
+		}
