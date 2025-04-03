@@ -2,7 +2,8 @@ package cyberpro.game.model;
 
 	import java.util.ArrayList;
 	import java.util.Set;
-	enum Color { YELLOW, GREEN, PURPLE }; 
+
+	enum Color {YELLOW, GREEN, PURPLE}; 
 	
 	public class Player {
 		
@@ -13,21 +14,21 @@ package cyberpro.game.model;
 	    private Coordinates coordinates;
 		private boolean isAlive;
 		private int speed;
+
+		Color color;
 		private ArrayList <Modifier> playerModifiers; 
-		private Color color;
-
 		
-		 
-		public Player(String name,Coordinates coordinates, Color color) {
-				 
-			this.id= "P"+ ++counter;
-			this.name = name;
-			this.coordinates = coordinates;
-			this.color=color;
-			
-		}
+		 public Player(String id, String name, int hitpoints, Coordinates coordinates, int speed, Color color) {
+		        this.id = "P"+ ++counter;
+		        this.name = name;
+		        this.hitpoints = hitpoints;
+		        this.coordinates = coordinates;
+		        this.speed = speed;
+		        this.color = color;
+		        this.playerModifiers = new ArrayList<>();
+		    }
 
-		 public boolean moveDown() {
+     public boolean moveDown() {
 		        coordinates.setY(coordinates.getY() + speed);
 		        return true;
 		    }
@@ -63,8 +64,4 @@ package cyberpro.game.model;
 		 public void setAlive(boolean status) {
 		        this.isAlive = status;
 		    }
-		}  
-		    
-		    
-		
-	
+		}
