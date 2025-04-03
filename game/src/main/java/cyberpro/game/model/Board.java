@@ -30,12 +30,7 @@ public class Board {
             }
         }
     }
-}
-	
-	
-	
-	
-
-	
-	
+	public String getName() {
+		return name;
+	}
 }
