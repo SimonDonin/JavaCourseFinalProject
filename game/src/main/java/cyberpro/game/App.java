@@ -1,5 +1,6 @@
 package cyberpro.game;
 
+import cyberpro.game.controller.GameController;
 import cyberpro.game.model.Board;
 import cyberpro.game.model.Game;
 
@@ -11,7 +12,6 @@ public class App
 {
     public static void main( String[] args )
     {
-        Game game = new Game("myGame", 2, new Board("myBoard", 12));
-        System.out.println(game);
+        GameController.mainMenu();
     }
 }
