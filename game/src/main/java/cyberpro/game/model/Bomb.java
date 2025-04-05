@@ -32,6 +32,10 @@ public class Bomb {
 		this.raysRange = DEFAULT_RAYS_RANGE;
 	}
 
+	public String getId() {
+		return id;
+	}
+
 	// transforms to an explosion and causes rays appearance till a specified time
 	// to make all the calculations the method should have
 	// input should include:
