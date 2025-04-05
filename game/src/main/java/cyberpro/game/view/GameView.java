@@ -7,14 +7,18 @@ import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.GridPane;
 import java.util.ArrayList;
+import javafx.application.Application;
+import javafx.scene.Scene;
+import javafx.scene.layout.StackPane;
 
 import cyberpro.game.model.*;
+import javafx.stage.Stage;
 
 /**
  *
  * @author mikhail
  */
-public class GameView {
+public class GameView extends Application {
     private final int TILE_SIZE = 40;
     // This is actually size of a sprite. It will depend on actual size of game board
     private GridPane grid = new GridPane();
@@ -33,6 +37,16 @@ public class GameView {
     private final int gridWidth = 10;
     private final int gridHeight = 10;
     // Shall be defined at model.
+    
+    @Override
+    public void start(Stage primaryStage) {
+        StackPane root = new StackPane(grid);
+        Scene scene = new Scene(root, 600, 500);
+        // Is it possible to create stages inside the toot Scene from class instances?
+        primaryStage.setScene(scene);
+        primaryStage.setTitle("Bombermen");
+        primaryStage.show();
+    }
 
     public GameView(TileType[][] board) {
         gameBoard = board;
@@ -77,6 +91,10 @@ public class GameView {
         // All bombs are on map
         */
         // Bomb class is not finished yet
+    }
+    
+    public void moveSprite (Coordinates coordNew, String playerID) {
+        // [TODO]
     }
 
 }
