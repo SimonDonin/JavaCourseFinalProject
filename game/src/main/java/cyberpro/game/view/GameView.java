@@ -26,13 +26,20 @@ public class GameView extends Application {
     // It is also possible to use TilePane, but we use GridPane because of better control methods
     private TileType[][] gameBoard;
     // Game board array. We have to recive it from a Controller
-    private final Image playerOneImage = new Image(getClass().getResourceAsStream("Character1.png"));
-    private final Image brickWallImage = new Image(getClass().getResourceAsStream("BrickWall.png"));
-    private final Image concreteWallImage = new Image(getClass().getResourceAsStream("ConcreteWall.png"));
-    private final Image floorImage = new Image(getClass().getResourceAsStream("Floor.png"));
-    private final Image bombImage = new Image(getClass().getResourceAsStream("Bomb.png"));
-    private final Image enemyImage = new Image(getClass().getResourceAsStream("Enemy.png"));
-    private final Image blastImage = new Image(getClass().getResourceAsStream("Blast.png"));
+	/*
+	 * private final Image playerOneImage = new
+	 * Image(getClass().getResourceAsStream("Character1.png")); private final Image
+	 * brickWallImage = new Image(getClass().getResourceAsStream("BrickWall.png"));
+	 * private final Image concreteWallImage = new
+	 * Image(getClass().getResourceAsStream("ConcreteWall.png"));
+	 */private final Image floorImage = new Image(getClass().getResourceAsStream("Floor.png"));
+	/*
+	 * private final Image bombImage = new
+	 * Image(getClass().getResourceAsStream("Bomb.png")); private final Image
+	 * enemyImage = new Image(getClass().getResourceAsStream("Enemy.png")); private
+	 * final Image blastImage = new
+	 * Image(getClass().getResourceAsStream("Blast.png"));
+	 */
     
     private final int gridWidth = 10;
     private final int gridHeight = 10;
@@ -61,8 +68,10 @@ public class GameView extends Application {
                 tileView.setFitHeight(TILE_SIZE);
                  switch (gameBoard[col][row]) {
                     case FLOOR -> tileView.setImage(floorImage);
-                    case BRICK_WALL -> tileView.setImage(brickWallImage);
-                    case CONCRETE_WALL -> tileView.setImage(concreteWallImage);
+					/*
+					 * case BRICK_WALL -> tileView.setImage(brickWallImage); case CONCRETE_WALL ->
+					 * tileView.setImage(concreteWallImage);
+					 */
                 }
                 grid.add(tileView, row, col);
             }
@@ -72,7 +81,7 @@ public class GameView extends Application {
             tileView.setFitWidth(TILE_SIZE);
             tileView.setFitHeight(TILE_SIZE);
             // How to get player color??
-            tileView.setImage(playerOneImage);
+			/* tileView.setImage(playerOneImage); */
             grid.add(tileView, player.getCoordinates().getX(), player.getCoordinates().getY());
             // We just put player tile above the grid at the end of draw board cycle. 
             // So it does not "shade" tiles below the player.

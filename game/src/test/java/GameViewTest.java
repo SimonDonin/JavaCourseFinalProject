@@ -6,6 +6,8 @@
 import cyberpro.game.model.Bomb;
 import cyberpro.game.model.Modifier;
 import cyberpro.game.model.Player;
+import cyberpro.game.view.GameView;
+
 import java.util.ArrayList;
 import junit.framework.TestCase;
 

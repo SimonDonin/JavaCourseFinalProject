@@ -5,6 +5,7 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 
 import cyberpro.game.model.*;
+import cyberpro.game.view.GameView;
 
 public class GameController {
 	private static BlockingQueue<String> commandQueue = new LinkedBlockingQueue<>();
@@ -56,6 +57,9 @@ public class GameController {
 
 		// print game after some players actions
 		System.out.println(game);
+		
+		GameView gameView = new GameView(board.getCells());
+		gameView.start(null);
 	}
 
 	// processes a command from a Player
