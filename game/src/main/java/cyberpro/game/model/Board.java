@@ -1,26 +1,28 @@
 package cyberpro.game.model;
 
-enum Cell {
-	EMPTY, WALL, BOMB
-}
+import cyberpro.game.view.*;
 
 public class Board {
 
-	private Cell[][] cells;
+	private TileType[][] cells;
 	private String name;
 	private int size;
 
 	public Board(String name, int size) {
 		this.name = name;
 		this.size = size;
-		cells = new Cell[size][size];
+		cells = new TileType[size][size];
 	}
 
-	public Cell getCell(int x, int y) {
+	public TileType getCell(int x, int y) {
 		return cells[x][y];
 	}
 
-	public void setCell(int x, int y, Cell cell) {
+	public TileType[][] getCells() {
+		return cells;
+	}
+
+	public void setCell(int x, int y, TileType cell) {
 		cells[x][y] = cell;
 	}
 
@@ -31,7 +33,7 @@ public class Board {
 	public void initialize() {
 		for (int i = 0; i < size; i++) {
 			for (int j = 0; j < size; j++) {
-				cells[i][j] = Cell.EMPTY;
+				cells[i][j] = TileType.FLOOR;
 			}
 		}
 	}
