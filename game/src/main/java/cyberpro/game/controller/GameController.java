@@ -16,20 +16,22 @@ public class GameController {
 		 * create a game: Players list Modifiers initialization, Board, initialize
 		 * Board, start the game
 		 */
-
+		// !!!TEST BLOCK!!!
 		// introducing a board
 		Board board = new Board("myBoard", 12);
 		board.initialize();
 
 		// introducing a game
 		Game game = new Game("myGame", 2, board);
-		System.out.println(game);
 
 		// introducing 2 players and adding to the game
 		Player player1 = new Player("Player1", new Coordinates(2, 2));
 		Player player2 = new Player("Player2", new Coordinates(11, 11));
 		game.addPlayer(player1);
 		game.addPlayer(player2);
+
+		// print game before
+		System.out.println(game);
 
 		new Thread(() -> {
 			try {
@@ -43,8 +45,20 @@ public class GameController {
 			}
 		}).start();
 
+		// Emulating Players' actions
+		moveLeft("P1", game);
+		moveRight("P1", game);
+		moveRight("P1", game);
+		moveDown("P1", game);
+		moveDown("P1", game);
+		moveDown("P2", game);
+		moveLeft("P2", game);
+
+		// print game after some players actions
+		System.out.println(game);
 	}
 
+	// processes a command from a Player
 	private static void processCommand(String command, Game game) {
 		switch (command.charAt(0)) {
 		case 'U' -> moveUp(command.substring(1), game);
@@ -56,6 +70,7 @@ public class GameController {
 
 	}
 
+	// movement right with a board size validation
 	private static boolean moveRight(String playerId, Game game) {
 		Player playerFound = game.findPlayerById(playerId);
 		if (playerFound == null)
@@ -68,6 +83,7 @@ public class GameController {
 		return true;
 	}
 
+	// movement left with a board size validation
 	private static boolean moveLeft(String playerId, Game game) {
 		Player playerFound = game.findPlayerById(playerId);
 		if (playerFound == null)
@@ -80,6 +96,7 @@ public class GameController {
 		return true;
 	}
 
+	// movement down with a board size validation
 	private static boolean moveDown(String playerId, Game game) {
 		Player playerFound = game.findPlayerById(playerId);
 		if (playerFound == null)
@@ -92,6 +109,7 @@ public class GameController {
 		return true;
 	}
 
+	// movement up with a board size validation
 	private static boolean moveUp(String playerId, Game game) {
 		Player playerFound = game.findPlayerById(playerId);
 		if (playerFound == null)
@@ -107,8 +125,13 @@ public class GameController {
 	// game process
 
 	// Draw the objects
+	private static void playersViewUpdate() {
+		// send off Players' Data
+		// actually call the View's method
 
-	// Start receiving input commands from GUI
+	}
+
+	// receiving input commands from VIEW
 	public void playerMoveUp(String playerId) {
 		commandQueue.add("U" + playerId);
 	}
@@ -125,8 +148,4 @@ public class GameController {
 		commandQueue.add("R" + playerId);
 	}
 
-	// few times a second repeat the same actions:
-	// process players' keyboard commands
-	// cycle over all objects and check if any actions needed with them, if yes -
-	// make them
 }

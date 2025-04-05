@@ -76,4 +76,14 @@ public class Player {
 	public void setAlive(boolean status) {
 		this.isAlive = status;
 	}
+
+	@Override
+	public String toString() {
+		return "Player " + name + ":"
+			+ "\n\tcoordinates: [" + coordinates.getX() + ", " + coordinates.getY() + "]"
+			+ "\n\tspeed: " + speed
+			+ "\n\tcolor: " + color
+			+ "\n\t" + playerModifiers.toString() + "\n";
+	}
+	
 }

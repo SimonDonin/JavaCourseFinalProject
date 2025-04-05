@@ -18,9 +18,9 @@ public class Game {
 		this.name = name;
 		this.playersNumber = playersNumber;
 		this.board = board;
-		ArrayList<Player> players = new ArrayList<>();
-		ArrayList<Bomb> bombs = new ArrayList<>();
-		ArrayList<Modifier> modifiers = new ArrayList<>();
+		players = new ArrayList<>();
+		bombs = new ArrayList<>();
+		modifiers = new ArrayList<>();
 	}
 
 	public Player findPlayerById(String Id) {
@@ -86,7 +86,11 @@ public class Game {
 	@Override
 	public String toString() {
 		// TODO Auto-generated method stub
-		return "Game " + name + " with " + playersNumber + " players on the " + board.getName() + " board";
+		return "Game " + name + " with " + playersNumber + " players on the " + board.getName() + " board"
+				+ "\nBOARD" + "\n" + board.toString()
+				+ "\nPLAYERS"+ "\n" + players.toString()
+				+ "\nBOMBS"+ "\n" + bombs.toString()
+				+ "\nMODIFIERS"+ "\n" + modifiers.toString();	
 	}
 
 	/*

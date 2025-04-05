@@ -39,4 +39,16 @@ public class Board {
 	public String getName() {
 		return name;
 	}
+
+	@Override
+	public String toString() {
+		StringBuilder str = new StringBuilder();
+		for (int i = 0; i < size; i++) {
+			for (int j = 0; j < size; j++) {
+				str.append(i + ":" + j + "=" + cells[i][j] + " ");
+			}
+			str.append("\n");
+		}
+		return str + "";
+	}
 }
