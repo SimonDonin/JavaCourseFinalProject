@@ -68,6 +68,10 @@ public class GameView extends Application {
         // gameBoard = board;
         return;
     }
+    
+    public void getBoard(TileType[][] board) {
+        gameBoard = board;
+    }
 
     public void drawGrid(ArrayList<Player> players, ArrayList<Bomb> bombs, ArrayList<Modifier> modifiers) {
         grid.getChildren().clear();

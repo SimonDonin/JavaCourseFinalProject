@@ -63,6 +63,8 @@ public class GameController {
 		
 		// GameView gameView = new GameView(board.getCells());
 		Application.launch(GameView.class);
+                
+                System.out.println("This code is never executed!");
 	}
 
 	// processes a command from a Player
