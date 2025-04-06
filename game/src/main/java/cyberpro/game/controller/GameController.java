@@ -3,9 +3,12 @@ package cyberpro.game.controller;
 import java.util.*;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
+import javafx.application.Application;
+// This is starter for JavaFX window
 
 import cyberpro.game.model.*;
 import cyberpro.game.view.GameView;
+
 
 public class GameController {
 	private static BlockingQueue<String> commandQueue = new LinkedBlockingQueue<>();
@@ -58,8 +61,8 @@ public class GameController {
 		// print game after some players actions
 		System.out.println(game);
 		
-		GameView gameView = new GameView(board.getCells());
-		gameView.start(null);
+		// GameView gameView = new GameView(board.getCells());
+		Application.launch(GameView.class);
 	}
 
 	// processes a command from a Player

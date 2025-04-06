@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import javafx.application.Application;
 import javafx.scene.Scene;
 import javafx.scene.layout.StackPane;
+import javafx.scene.layout.GridPane;
 
 import cyberpro.game.model.*;
 import javafx.stage.Stage;
@@ -21,25 +22,18 @@ import javafx.stage.Stage;
 public class GameView extends Application {
     private final int TILE_SIZE = 40;
     // This is actually size of a sprite. It will depend on actual size of game board
-    private GridPane grid = new GridPane();
+    private GridPane grid;
     // Create GridPane object to display all graphical objects.
     // It is also possible to use TilePane, but we use GridPane because of better control methods
     private TileType[][] gameBoard;
     // Game board array. We have to recive it from a Controller
-	/*
-	 * private final Image playerOneImage = new
-	 * Image(getClass().getResourceAsStream("Character1.png")); private final Image
-	 * brickWallImage = new Image(getClass().getResourceAsStream("BrickWall.png"));
-	 * private final Image concreteWallImage = new
-	 * Image(getClass().getResourceAsStream("ConcreteWall.png"));
-	 */private final Image floorImage = new Image(getClass().getResourceAsStream("Floor.png"));
-	/*
-	 * private final Image bombImage = new
-	 * Image(getClass().getResourceAsStream("Bomb.png")); private final Image
-	 * enemyImage = new Image(getClass().getResourceAsStream("Enemy.png")); private
-	 * final Image blastImage = new
-	 * Image(getClass().getResourceAsStream("Blast.png"));
-	 */
+    private final Image playerOneImage = new Image(getClass().getResourceAsStream("Character1.png")); 
+    private final Image brickWallImage = new Image(getClass().getResourceAsStream("BrickWall.png"));
+    private final Image concreteWallImage = new Image(getClass().getResourceAsStream("ConcreteWall.png"));
+    private final Image floorImage = new Image(getClass().getResourceAsStream("Floor.png"));
+    private final Image bombImage = new Image(getClass().getResourceAsStream("Bomb.png")); 
+    private final Image enemyImage = new Image(getClass().getResourceAsStream("Enemy.png")); 
+    private final Image blastImage = new Image(getClass().getResourceAsStream("Blast.png"));
     
     private final int gridWidth = 10;
     private final int gridHeight = 10;
@@ -47,16 +41,20 @@ public class GameView extends Application {
     
     @Override
     public void start(Stage primaryStage) {
-        StackPane root = new StackPane(grid);
-        Scene scene = new Scene(root, 600, 500);
+        
+        grid = new GridPane();
+        Scene scene = new Scene(grid, 600, 500);
         // Is it possible to create stages inside the toot Scene from class instances?
         primaryStage.setScene(scene);
         primaryStage.setTitle("Bombermen");
         primaryStage.show();
+        grid.requestFocus();
+        // Allow key handling
     }
 
-    public GameView(TileType[][] board) {
-        gameBoard = board;
+    public void GameView() {
+        // gameBoard = board;
+        return;
     }
 
     public void drawGrid(ArrayList<Player> players, ArrayList<Bomb> bombs, ArrayList<Modifier> modifiers) {
