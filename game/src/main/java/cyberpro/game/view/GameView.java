@@ -2,6 +2,7 @@ package cyberpro.game.view;
 
 import javafx.scene.Scene;
 import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyEvent;
 // Do not shure if it possible to use here. Or juct controller will use it.
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
@@ -11,8 +12,10 @@ import javafx.application.Application;
 import javafx.scene.Scene;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.GridPane;
+import javafx.scene.input.KeyCode;
 
 import cyberpro.game.model.*;
+import cyberpro.game.view.GameView;
 import javafx.stage.Stage;
 
 /**
@@ -43,16 +46,25 @@ public class GameView extends Application {
     public void start(Stage primaryStage) {
         
         grid = new GridPane();
+        grid.setFocusTraversable(true);
+        // This is required to obtain a focus for keyboard input
+        
+        
         Scene scene = new Scene(grid, 600, 500);
         // Is it possible to create stages inside the toot Scene from class instances?
+        
+        grid.setOnKeyPressed(this::handleKeyPress);
+        // Allow key handling
         primaryStage.setScene(scene);
         primaryStage.setTitle("Bombermen");
         primaryStage.show();
+        
+        
         grid.requestFocus();
-        // Allow key handling
+        // Without this handler work is not granted.
     }
 
-    public void GameView() {
+    public GameView() {
         // gameBoard = board;
         return;
     }
@@ -98,6 +110,14 @@ public class GameView extends Application {
         // All bombs are on map
         */
         // Bomb class is not finished yet
+    }
+    
+    private void handleKeyPress(KeyEvent event) {
+        // if (event.getCode() == KeyCode.UP) cyberpro.game.controller.GameController.playerMoveUp();
+        // if (event.getCode() == KeyCode.DOWN) cyberpro.game.controller.GameController.moveDown();
+        // if (event.getCode() == KeyCode.LEFT) cyberpro.game.controller.GameController.moveLeft();
+        // if (event.getCode() == KeyCode.RIGHT) cyberpro.game.controller.GameController.moveRight();
+        System.out.println("Key pressed "+event.getCode());
     }
     
     public void moveSprite (Coordinates coordNew, String playerID) {
