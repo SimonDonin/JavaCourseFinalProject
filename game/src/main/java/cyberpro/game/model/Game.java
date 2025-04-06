@@ -23,6 +23,18 @@ public class Game {
 		modifiers = new ArrayList<>();
 	}
 
+	public ArrayList<Player> getPlayers() {
+		return players;
+	}
+
+	public ArrayList<Bomb> getBombs() {
+		return bombs;
+	}
+
+	public ArrayList<Modifier> getModifiers() {
+		return modifiers;
+	}
+
 	public Player findPlayerById(String Id) {
 		if (players == null)
 			return null;
@@ -86,11 +98,9 @@ public class Game {
 	@Override
 	public String toString() {
 		// TODO Auto-generated method stub
-		return "Game " + name + " with " + playersNumber + " players on the " + board.getName() + " board"
-				+ "\nBOARD" + "\n" + board.toString()
-				+ "\nPLAYERS"+ "\n" + players.toString()
-				+ "\nBOMBS"+ "\n" + bombs.toString()
-				+ "\nMODIFIERS"+ "\n" + modifiers.toString();	
+		return "Game " + name + " with " + playersNumber + " players on the " + board.getName() + " board" + "\nBOARD"
+				+ "\n" + board.toString() + "\nPLAYERS" + "\n" + players.toString() + "\nBOMBS" + "\n"
+				+ bombs.toString() + "\nMODIFIERS" + "\n" + modifiers.toString();
 	}
 
 	/*
