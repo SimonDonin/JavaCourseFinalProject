@@ -18,6 +18,7 @@ public class GameController implements ControllerInterface {
 
 	// main menu: enter number of players, enter players' names, choose players'
 	// colors, choose a map, then start
+<<<<<<< Updated upstream
 	public void mainMenu() throws IOException {
 =======
 	
