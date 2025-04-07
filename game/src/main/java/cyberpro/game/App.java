@@ -12,6 +12,7 @@ public class App
 {
     public static void main( String[] args )
     {
-        GameController.mainMenu();
+        GameController gameController = new GameController();  
+    	gameController.mainMenu();
     }
 }
