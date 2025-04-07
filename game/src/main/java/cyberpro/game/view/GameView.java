@@ -19,6 +19,10 @@ import cyberpro.game.controller.GameController;
 import cyberpro.game.model.*;
 import cyberpro.game.view.GameView;
 import javafx.stage.Stage;
+// Animation libs
+import javafx.animation.TranslateTransition;
+import javafx.util.Duration;
+// End animation libs
 
 /**
  *
@@ -43,8 +47,8 @@ public class GameView {
 	private final Image enemyImage = new Image(getClass().getResourceAsStream("Enemy.png"));
 	private final Image blastImage = new Image(getClass().getResourceAsStream("Blast.png"));
 
-	private final int gridWidth = 12;
-	private final int gridHeight = 12;
+	private int gridWidth = 16;
+	private int gridHeight = 16;
 	// Shall be defined at model.
 
 	/*
@@ -139,6 +143,7 @@ public class GameView {
 	}
 
 	private void handleKeyPress(KeyEvent event) {
+                /*
 		if (event.getCode() == KeyCode.UP)
 			controller.playerMoveUp(controller.getPlayerIdByNumber(1));
 		if (event.getCode() == KeyCode.DOWN)
@@ -156,6 +161,7 @@ public class GameView {
 			controller.playerMoveLeft(controller.getPlayerIdByNumber(2));
 		if (event.getCode() == KeyCode.D)
 			controller.playerMoveRight(controller.getPlayerIdByNumber(2));
+            */
 
 		int playerNumber = 0;
 		switch (event.getCode()) {

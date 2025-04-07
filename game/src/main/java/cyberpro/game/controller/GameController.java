@@ -9,23 +9,30 @@ import javafx.application.Platform;
 import javafx.stage.Stage;
 import cyberpro.game.model.*;
 import cyberpro.game.view.GameView;
+import java.io.IOException;
 
 public class GameController implements ControllerInterface {
 	private static BlockingQueue<String> commandQueue = new LinkedBlockingQueue<>();
 	private GameView gameView;
-	Board board = new Board("myBoard", 12);
-	Game game = new Game("myGame", 2, board);
+	Board board;
+        // Board is a part of model, we could just put getter here
+	Game game = new Game("myGame", 2);
 
 	// main menu: enter number of players, enter players' names, choose players'
 	// colors, choose a map, then start
-	public void mainMenu() {
+	public void mainMenu() throws IOException {
 		/*
 		 * create a game: Players list Modifiers initialization, Board, initialize
 		 * Board, start the game
 		 */
 		// !!!TEST BLOCK!!!
 		// introducing a board
-		board.initialize();
+                int gridWidth;
+		int gridHeight;
+		game.loadLevel("level1.txt");
+                board = game.getBoard();
+                gridWidth = gridHeight = board.getSize();
+                // We dicided to have a square board, but it is possible to rectangle board
 
 		// introducing a game
 		//Game game = new Game("myGame", 2, board);
@@ -33,8 +40,8 @@ public class GameController implements ControllerInterface {
 		// introducing 2 players and adding to the game
 		Player player1 = new Player("Player1", new Coordinates(2, 2));
 		Player player2 = new Player("Player2", new Coordinates(7, 6));
-		int gridWidth = 12;
-		int gridHeight = 12;
+		// int gridWidth = 12;
+		// int gridHeight = 12;
 
 		if (player2.getCoordinates().getX() >= gridWidth || player2.getCoordinates().getY() >= gridHeight) {
 		    System.out.println("Player 2 is out of bounds!");
