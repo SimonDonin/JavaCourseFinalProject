@@ -69,21 +69,21 @@ public class GameView {
 	 * grid.requestFocus(); // Without this handler work is not granted. }
 	 */
 
-	public GameView(Stage stage, ControllerInterface controller, Board board) {
+	public GameView(Stage stage, ControllerInterface controller) {
 		this.controller = controller; // Сохраняем контроллер для дальнейшей работы
-		this.gameBoard = board.getCells(); // Получаем массив плиток из Board
+		this.gameBoard = controller.getBoard().getCells(); // Получаем массив плиток из Board
 
 		grid = new GridPane();
 		grid.setFocusTraversable(true); // Устанавливаем фокус для ввода
 
-		 // Убираем отступы и промежутки
-	    grid.setPadding(new Insets(0)); // Без отступов
-	    grid.setHgap(0); // Без промежутков между колонками
-	    grid.setVgap(0); // Без промежутков между строками
-		
+		// Убираем отступы и промежутки
+		grid.setPadding(new Insets(0)); // Без отступов
+		grid.setHgap(0); // Без промежутков между колонками
+		grid.setVgap(0); // Без промежутков между строками
+
 		int sceneSize = TILE_SIZE * gridWidth; // или gridHeight, если нужна квадратная область
 		Scene scene = new Scene(grid, sceneSize, sceneSize);
-		//Scene scene = new Scene(grid, 520, 520);
+		// Scene scene = new Scene(grid, 520, 520);
 		grid.setOnKeyPressed(this::handleKeyPress); // Обработка нажатия клавиш
 		stage.setScene(scene);
 		stage.setTitle("Bombermen");
@@ -91,7 +91,6 @@ public class GameView {
 
 		grid.requestFocus(); // Запрашиваем фокус
 	}
-
 
 	public void getBoard(TileType[][] board) {
 		gameBoard = board;
@@ -106,8 +105,8 @@ public class GameView {
 				tileView.setFitHeight(TILE_SIZE);
 				switch (gameBoard[col][row]) {
 				case FLOOR -> tileView.setImage(floorImage);
-				case BRICK_WALL -> tileView.setImage(brickWallImage); 
-                                case CONCRETE_WALL -> tileView.setImage(concreteWallImage);
+				case BRICK_WALL -> tileView.setImage(brickWallImage);
+				case CONCRETE_WALL -> tileView.setImage(concreteWallImage);
 				}
 				grid.add(tileView, row, col);
 			}
@@ -118,50 +117,54 @@ public class GameView {
 			tileView.setFitHeight(TILE_SIZE);
 			// How to get player color??
 			tileView.setImage(playerOneImage);
-			
+
 			if (player.getCoordinates().getX() < gridWidth && player.getCoordinates().getY() < gridHeight) {
-			    grid.add(tileView, player.getCoordinates().getX(), player.getCoordinates().getY());
+				grid.add(tileView, player.getCoordinates().getX(), player.getCoordinates().getY());
 			} else {
-			    System.out.println("Player is out of bounds: " + player.getCoordinates());
+				System.out.println("Player is out of bounds: " + player.getCoordinates());
 			}
 
-			
-			//grid.add(tileView, player.getCoordinates().getX(), player.getCoordinates().getY());
+			// grid.add(tileView, player.getCoordinates().getX(),
+			// player.getCoordinates().getY());
 			// We just put player tile above the grid at the end of draw board cycle.
 			// So it does not "shade" tiles below the player.
 		}
 		// All players are on map
-		/*
-		 * for (Bomb bomb : bombs) { ImageView tileView = new ImageView();
-		 * tileView.setFitWidth(TILE_SIZE); tileView.setFitHeight(TILE_SIZE); // Do we
-		 * need to know, who put the bomb?? tileView.setImage(bombImage);
-		 * grid.add(tileView, bomb.getCoordinates().getX(),
-		 * bomb.getCoordinates().getY()); // !! Bomb is not implemented yet. Wait for it
-		 * } // All bombs are on map
-		 */
+
+		for (Bomb bomb : bombs) {
+			ImageView tileView = new ImageView();
+			tileView.setFitWidth(TILE_SIZE);
+			tileView.setFitHeight(TILE_SIZE); // Do we
+			// need to know, who put the bomb?? 
+			tileView.setImage(bombImage);
+			grid.add(tileView, bomb.getCoordinates().getX(), bomb.getCoordinates().getY()); // !! Bomb is not
+																							// implemented yet. Wait for
+																							// it
+		} // All bombs are on map
+
 		// Bomb class is not finished yet
 	}
 
 	private void handleKeyPress(KeyEvent event) {
-                /*
-		if (event.getCode() == KeyCode.UP)
-			controller.playerMoveUp(controller.getPlayerIdByNumber(1));
-		if (event.getCode() == KeyCode.DOWN)
-			controller.playerMoveDown(controller.getPlayerIdByNumber(1));
-		if (event.getCode() == KeyCode.LEFT)
-			controller.playerMoveLeft(controller.getPlayerIdByNumber(1));
-		if (event.getCode() == KeyCode.RIGHT)
-			controller.playerMoveRight(controller.getPlayerIdByNumber(1));
-
-		if (event.getCode() == KeyCode.W)
-			controller.playerMoveUp(controller.getPlayerIdByNumber(2));
-		if (event.getCode() == KeyCode.S)
-			controller.playerMoveDown(controller.getPlayerIdByNumber(2));
-		if (event.getCode() == KeyCode.A)
-			controller.playerMoveLeft(controller.getPlayerIdByNumber(2));
-		if (event.getCode() == KeyCode.D)
-			controller.playerMoveRight(controller.getPlayerIdByNumber(2));
-            */
+		/*
+		 * if (event.getCode() == KeyCode.UP)
+		 * controller.playerMoveUp(controller.getPlayerIdByNumber(1)); if
+		 * (event.getCode() == KeyCode.DOWN)
+		 * controller.playerMoveDown(controller.getPlayerIdByNumber(1)); if
+		 * (event.getCode() == KeyCode.LEFT)
+		 * controller.playerMoveLeft(controller.getPlayerIdByNumber(1)); if
+		 * (event.getCode() == KeyCode.RIGHT)
+		 * controller.playerMoveRight(controller.getPlayerIdByNumber(1));
+		 * 
+		 * if (event.getCode() == KeyCode.W)
+		 * controller.playerMoveUp(controller.getPlayerIdByNumber(2)); if
+		 * (event.getCode() == KeyCode.S)
+		 * controller.playerMoveDown(controller.getPlayerIdByNumber(2)); if
+		 * (event.getCode() == KeyCode.A)
+		 * controller.playerMoveLeft(controller.getPlayerIdByNumber(2)); if
+		 * (event.getCode() == KeyCode.D)
+		 * controller.playerMoveRight(controller.getPlayerIdByNumber(2));
+		 */
 
 		int playerNumber = 0;
 		switch (event.getCode()) {
@@ -195,6 +198,10 @@ public class GameView {
 		}
 		case KeyCode.D -> {
 			controller.playerMoveRight(controller.getPlayerIdByNumber(2));
+			playerNumber = 2;
+		}
+		case KeyCode.G -> {
+			controller.playerPlantBomb(controller.getPlayerIdByNumber(2));
 			playerNumber = 2;
 		}
 		default -> {

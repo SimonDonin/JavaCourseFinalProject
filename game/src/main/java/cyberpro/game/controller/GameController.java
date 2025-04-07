@@ -1,76 +1,71 @@
 package cyberpro.game.controller;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
-import javafx.application.Application;
 // This is starter for JavaFX window
 import javafx.application.Platform;
 import javafx.stage.Stage;
 import cyberpro.game.model.*;
+import cyberpro.game.service.FileResourcesImporter;
 import cyberpro.game.view.GameView;
 import java.io.IOException;
 
 public class GameController implements ControllerInterface {
+	private static final String DEFAULT_LEVEL = "/cyberpro/game/model/level1.txt";
 	private static BlockingQueue<String> commandQueue = new LinkedBlockingQueue<>();
+	private static final int DEFAULT_TIME_TILL_EXPLOSION = 4;
 	private GameView gameView;
-	Board board;
-        // Board is a part of model, we could just put getter here
-	Game game = new Game("myGame", 2);
+	Game game;
 
 	// main menu: enter number of players, enter players' names, choose players'
 	// colors, choose a map, then start
+
+	@Override
+	public Board getBoard() {
+		return game.getBoard();
+	}
+
+	// it is where users define their players and choose a level to play
 	public void mainMenu() throws IOException {
-		/*
-		 * create a game: Players list Modifiers initialization, Board, initialize
-		 * Board, start the game
-		 */
-		// !!!TEST BLOCK!!!
-		// introducing a board
-                int gridWidth;
-		int gridHeight;
-		game.loadLevel("level1.txt");
-                board = game.getBoard();
-                gridWidth = gridHeight = board.getSize();
-                // We dicided to have a square board, but it is possible to rectangle board
 
-		// introducing a game
-		//Game game = new Game("myGame", 2, board);
+		// initialization
+		// File
+		FileResourcesImporter fileResourcesImporter = new FileResourcesImporter();
 
-		// introducing 2 players and adding to the game
-		Player player1 = new Player("Player1", new Coordinates(2, 2));
-		Player player2 = new Player("Player2", new Coordinates(7, 6));
-		// int gridWidth = 12;
-		// int gridHeight = 12;
+		// create a game
+		game = new Game("myGame", fileResourcesImporter.importLevelIntoBoard("level", DEFAULT_LEVEL));
 
-		if (player2.getCoordinates().getX() >= gridWidth || player2.getCoordinates().getY() >= gridHeight) {
-		    System.out.println("Player 2 is out of bounds!");
-		}
+		// specify players in the Start menu and create them
+		game.addPlayer(new Player("Player1", new Coordinates(2, 2)));
+		game.addPlayer(new Player("Player2", new Coordinates(7, 6)));
 
+		gameProcess();
+
+	}
+
+	private void gameProcess() {
 		
-		game.addPlayer(player1);
-		game.addPlayer(player2);
-
-		// print game before
-		System.out.println(game);
-
 		// GameView initialization
 		Platform.startup(() -> {
 			Stage stage = new Stage();
-			gameView = new GameView(stage, this, board);
+			gameView = new GameView(stage, this);
 		});
 		Platform.runLater(() -> {
-		    gameView.drawGrid(game.getPlayers(), game.getBombs(), game.getModifiers());
+			gameView.drawGrid(game.getPlayers(), game.getBombs(), game.getModifiers());
 		});
 
+		// running a thread for dealing with a commands queue
 		new Thread(() -> {
 			try {
 				while (true) {
 					String command = commandQueue.take();
 					processCommand(command, game); // Command processing
-					//gameView.drawGrid(game.getPlayers(), game.getBombs(), game.getModifiers());
+					// gameView.drawGrid(game.getPlayers(), game.getBombs(), game.getModifiers());
 					Platform.runLater(() -> {
-					    gameView.drawGrid(game.getPlayers(), game.getBombs(), game.getModifiers());
+						gameView.drawGrid(game.getPlayers(), game.getBombs(), game.getModifiers());
 					});
 
 				}
@@ -79,42 +74,28 @@ public class GameController implements ControllerInterface {
 			}
 		}).start(); // Retrieving a command from the queue (waits if it's empty)
 
-		// Emulating Players' actions
-		moveLeft("P1", game);
-		moveRight("P1", game);
-		moveRight("P1", game);
-		moveDown("P1", game);
-		moveDown("P1", game);
-		moveDown("P2", game);
-		moveLeft("P2", game);
-
-		// print game after some players actions
-		System.out.println(game);
-
-		// GameView gameView = new GameView(board.getCells());
-		// Application.launch(GameView.class);
-
-	}
+		}
 
 	// processes a command from a Player
-	private static void processCommand(String command, Game game) {
+	private void processCommand(String command, Game game) {
 		switch (command.charAt(0)) {
-		case 'U' -> moveUp(command.substring(1), game);
-		case 'D' -> moveDown(command.substring(1), game);
-		case 'L' -> moveLeft(command.substring(1), game);
-		case 'R' -> moveRight(command.substring(1), game);
+		case 'U' -> moveUp(command.substring(1));
+		case 'D' -> moveDown(command.substring(1));
+		case 'L' -> moveLeft(command.substring(1));
+		case 'R' -> moveRight(command.substring(1));
+		case 'B' -> plantBomb(command.substring(1));
 		default -> System.out.println("Unknown command");
 		}
 
 	}
 
 	// movement right with a board size validation
-	private static boolean moveRight(String playerId, Game game) {
+	private boolean moveRight(String playerId) {
 		Player playerFound = game.findPlayerById(playerId);
 		if (playerFound == null)
 			return false;
 		int x = playerFound.getCoordinates().getX() + playerFound.getSpeed();
-		if (x > game.getBoard().getSize()) {
+		if (x > game.getBoard().getSize() - 1) {
 			return false;
 		}
 		playerFound.getCoordinates().setX(x);
@@ -122,12 +103,12 @@ public class GameController implements ControllerInterface {
 	}
 
 	// movement left with a board size validation
-	private static boolean moveLeft(String playerId, Game game) {
+	private boolean moveLeft(String playerId) {
 		Player playerFound = game.findPlayerById(playerId);
 		if (playerFound == null)
 			return false;
 		int x = playerFound.getCoordinates().getX() - playerFound.getSpeed();
-		if (x < 1) {
+		if (x < 0) {
 			return false;
 		}
 		playerFound.getCoordinates().setX(x);
@@ -135,12 +116,12 @@ public class GameController implements ControllerInterface {
 	}
 
 	// movement down with a board size validation
-	private static boolean moveDown(String playerId, Game game) {
+	private boolean moveDown(String playerId) {
 		Player playerFound = game.findPlayerById(playerId);
 		if (playerFound == null)
 			return false;
 		int y = playerFound.getCoordinates().getY() + playerFound.getSpeed();
-		if (y > game.getBoard().getSize()) {
+		if (y > game.getBoard().getSize() - 1) {
 			return false;
 		}
 		playerFound.getCoordinates().setY(y);
@@ -148,12 +129,12 @@ public class GameController implements ControllerInterface {
 	}
 
 	// movement up with a board size validation
-	private static boolean moveUp(String playerId, Game game) {
+	private boolean moveUp(String playerId) {
 		Player playerFound = game.findPlayerById(playerId);
 		if (playerFound == null)
 			return false;
 		int y = playerFound.getCoordinates().getY() - playerFound.getSpeed();
-		if (y < 1) {
+		if (y < 0) {
 			return false;
 		}
 		playerFound.getCoordinates().setY(y);
@@ -189,12 +170,17 @@ public class GameController implements ControllerInterface {
 	public void playerMoveRight(String playerId) {
 		commandQueue.add("R" + playerId);
 	}
+	
+	@Override
+	public void playerPlantBomb(String playerId) {
+		commandQueue.add("B" + playerId);
+	}
 
 	@Override
 	public String getPlayerIdByNumber(int playerNumber) {
 		if (game.getPlayers().isEmpty()) {
-		    System.out.println("Players list is empty!");
-		    return null;
+			System.out.println("Players list is empty!");
+			return null;
 		}
 		int playersQuantity = game.getPlayers().size();
 		if (playerNumber > playersQuantity) {
@@ -203,6 +189,24 @@ public class GameController implements ControllerInterface {
 		return game.getPlayers().get(playerNumber - 1).getId();
 	}
 
-	
-	
+	public void plantBomb(String playerId) {
+		if (game.getPlayers().isEmpty()) {
+			System.out.println("Players list is empty!");
+			return;
+		}
+		Player playerFound = game.findPlayerById(playerId);
+		if (playerFound == null)
+			return;
+		
+		Date now = new Date();
+
+        Calendar calendar = Calendar.getInstance();
+        calendar.setTime(now);
+        calendar.add(Calendar.SECOND, DEFAULT_TIME_TILL_EXPLOSION);
+
+        Date explosionTime = calendar.getTime();
+		
+		game.addBomb(new Bomb(playerId, playerFound.getCoordinates(), false, explosionTime));
+		System.out.println("Player " + playerId + " planted a bomb");
+	}
 }

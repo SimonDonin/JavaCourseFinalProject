@@ -9,11 +9,9 @@ import java.io.IOException;
  * Hello world!
  *
  */
-public class App 
-{
-    public static void main( String[] args ) throws IOException
-    {
-        GameController gameController = new GameController();  
-    	gameController.mainMenu();
-    }
+public class App {
+	public static void main(String[] args) throws IOException {
+		GameController gameController = new GameController();
+		gameController.mainMenu();
+	}
 }

@@ -36,6 +36,10 @@ public class Bomb {
 		return id;
 	}
 
+	public Coordinates getCoordinates() {
+		return coordinates;
+	}
+
 	// transforms to an explosion and causes rays appearance till a specified time
 	// to make all the calculations the method should have
 	// input should include:
