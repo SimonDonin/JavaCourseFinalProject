@@ -21,13 +21,21 @@ public class Game {
 	private ArrayList<Bomb> bombs;
 	private ArrayList<Modifier> modifiers;
 
-	public Game(String name, int playersNumber) {
+	
+	  //public Game(String name, int playersNumber) { this.name = name;
+	  //this.playersNumber = playersNumber; board = new Board(); players = new
+	  //ArrayList<>(); bombs = new ArrayList<>(); modifiers = new ArrayList<>();
+	  //}
+
+	public Game(String name, Board board) {
 		this.name = name;
-		this.playersNumber = playersNumber;
-		// this.board = board;
-		players = new ArrayList<>();
+		this.playersNumber = DEFAULT_PLAYERS_NUMBER;
+		this.board = board;
+		this.players = players;
 		bombs = new ArrayList<>();
 		modifiers = new ArrayList<>();
+		players = new ArrayList<>();
+
 	}
 
 	public ArrayList<Player> getPlayers() {
@@ -102,6 +110,29 @@ public class Game {
 		return true;
 	}
 
+	public boolean addBomb(Bomb bomb) {
+		// search for a double and if it is found - return false
+		Bomb bombFound = findBombById(bomb.getId());
+		if (bombFound != null) {
+			return false;
+		}
+		this.bombs.add(bomb);
+		return true;
+	}
+
+	public boolean removeBomb(Bomb bomb) {
+		// if there are no players
+		if (bombs == null)
+			return false;
+		// search for a double and if it is found - return false
+		Bomb bombFound = findBombById(bomb.getId());
+		if (bombFound != null) {
+			return false;
+		}
+		this.bombs.remove(bomb);
+		return true;
+	}
+	
 	@Override
 	public String toString() {
 		// TODO Auto-generated method stub
@@ -113,47 +144,5 @@ public class Game {
 	/*
 	 * plantBomb findBombById findModifierById
 	 */
-        
-        public void loadLevel(String level) throws FileNotFoundException, IOException {
-            // This is simple implementation of loadLevel method
-            // External method will decide, with level we want to load
-            InputStream is = getClass().getResourceAsStream("level1.txt");
-            if (is == null) {
-                throw new FileNotFoundException("Resource not found: " + level);
-            }
-            InputStreamReader isr = new InputStreamReader(is);
-            BufferedReader reader = new BufferedReader(isr);
-            // [TODO] There should be a better way to simple read a file
 
-            List<String> lines = new ArrayList<>();
-            String line;
-        
-            while ((line = reader.readLine()) != null) {
-                lines.add(line);
-                System.out.println(line);
-            }
-        
-            int rows = lines.size();
-            int cols = lines.get(0).length();
-            if (rows != cols) { System.out.println("Board is not square"); }
-            
-            board = new Board(level, rows);
-        
-            for (int y = 0; y < rows; y++) {
-                for (int x = 0; x < cols; x++) {
-                    char c = lines.get(y).charAt(x);
-                    switch (c) {
-                        case '#' -> board.setCell(y, x, TileType.CONCRETE_WALL);
-                        case '$' -> board.setCell(y, x, TileType.BRICK_WALL);
-                        case '@' -> {
-                            board.setCell(y, x, TileType.FLOOR);
-                            // Set player coordinates
-                            // playerX = x;
-                            // playerY = y;
-                        }
-                        default -> board.setCell(y, x, TileType.FLOOR);
-                    }
-                }
-            }
-        }
 }
