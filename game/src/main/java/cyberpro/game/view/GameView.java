@@ -69,9 +69,9 @@ public class GameView {
 	 * grid.requestFocus(); // Without this handler work is not granted. }
 	 */
 
-	public GameView(Stage stage, ControllerInterface controller, Board board) {
+	public GameView(Stage stage, ControllerInterface controller) {
 		this.controller = controller; // Сохраняем контроллер для дальнейшей работы
-		this.gameBoard = board.getCells(); // Получаем массив плиток из Board
+		this.gameBoard = controller.getBoard().getCells(); // Получаем массив плиток из Board
 
 		grid = new GridPane();
 		grid.setFocusTraversable(true); // Устанавливаем фокус для ввода
@@ -143,6 +143,7 @@ public class GameView {
 	}
 
 	private void handleKeyPress(KeyEvent event) {
+<<<<<<< Updated upstream
                 /*
 		if (event.getCode() == KeyCode.UP)
 			controller.playerMoveUp(controller.getPlayerIdByNumber(1));
@@ -163,6 +164,8 @@ public class GameView {
 			controller.playerMoveRight(controller.getPlayerIdByNumber(2));
             */
 
+=======
+>>>>>>> Stashed changes
 		int playerNumber = 0;
 		switch (event.getCode()) {
 		case KeyCode.UP -> {
