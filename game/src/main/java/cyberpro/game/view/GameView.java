@@ -88,10 +88,6 @@ public class GameView {
 		grid.requestFocus(); // Запрашиваем фокус
 	}
 
-	public GameView() {
-		// gameBoard = board;
-		return;
-	}
 
 	public void getBoard(TileType[][] board) {
 		gameBoard = board;
@@ -106,10 +102,8 @@ public class GameView {
 				tileView.setFitHeight(TILE_SIZE);
 				switch (gameBoard[col][row]) {
 				case FLOOR -> tileView.setImage(floorImage);
-				/*
-				 * case BRICK_WALL -> tileView.setImage(brickWallImage); case CONCRETE_WALL ->
-				 * tileView.setImage(concreteWallImage);
-				 */
+				case BRICK_WALL -> tileView.setImage(brickWallImage); 
+                                case CONCRETE_WALL -> tileView.setImage(concreteWallImage);
 				}
 				grid.add(tileView, row, col);
 			}
