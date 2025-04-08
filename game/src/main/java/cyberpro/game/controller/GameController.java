@@ -65,7 +65,9 @@ public class GameController implements ControllerInterface {
 					processCommand(command, game); // Command processing
 					// gameView.drawGrid(game.getPlayers(), game.getBombs(), game.getModifiers());
 					Platform.runLater(() -> {
-						gameView.drawGrid(game.getPlayers(), game.getBombs(), game.getModifiers());
+						// gameView.drawGrid(game.getPlayers(), game.getBombs(), game.getModifiers());
+                                                // We do not redraw board each time. 
+                                                // Now we do this only if boad itself has been changed.
 					});
 
 				}
@@ -98,7 +100,14 @@ public class GameController implements ControllerInterface {
 		if (x > game.getBoard().getSize() - 1) {
 			return false;
 		}
-		playerFound.getCoordinates().setX(x);
+                // Begin of new code
+                Coordinates newCoord = new Coordinates(x, playerFound.getCoordinates().getY());
+		Platform.runLater(() -> {
+                    gameView.moveSprite(newCoord, playerId);
+                });
+                // End of new code
+                playerFound.getCoordinates().setX(x);
+                
 		return true;
 	}
 
@@ -111,6 +120,12 @@ public class GameController implements ControllerInterface {
 		if (x < 0) {
 			return false;
 		}
+                                // Begin of new code
+                Coordinates newCoord = new Coordinates(x, playerFound.getCoordinates().getY());
+		Platform.runLater(() -> {
+                    gameView.moveSprite(newCoord, playerId);
+                });
+                // End of new code
 		playerFound.getCoordinates().setX(x);
 		return true;
 	}
@@ -124,6 +139,12 @@ public class GameController implements ControllerInterface {
 		if (y > game.getBoard().getSize() - 1) {
 			return false;
 		}
+                // Begin of new code
+                Coordinates newCoord = new Coordinates(playerFound.getCoordinates().getX(), y);
+		Platform.runLater(() -> {
+                    gameView.moveSprite(newCoord, playerId);
+                });
+                // End of new code
 		playerFound.getCoordinates().setY(y);
 		return true;
 	}
@@ -137,6 +158,12 @@ public class GameController implements ControllerInterface {
 		if (y < 0) {
 			return false;
 		}
+                // Begin of new code
+                Coordinates newCoord = new Coordinates(playerFound.getCoordinates().getX(), y);
+		Platform.runLater(() -> {
+                    gameView.moveSprite(newCoord, playerId);
+                });
+                // End of new code
 		playerFound.getCoordinates().setY(y);
 		return true;
 	}
