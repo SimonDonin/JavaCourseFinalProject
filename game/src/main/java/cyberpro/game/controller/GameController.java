@@ -1,6 +1,7 @@
 package cyberpro.game.controller;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.concurrent.BlockingQueue;
@@ -11,12 +12,16 @@ import javafx.stage.Stage;
 import cyberpro.game.model.*;
 import cyberpro.game.service.FileResourcesImporter;
 import cyberpro.game.view.GameView;
+import cyberpro.game.view.TileType;
+
 import java.io.IOException;
 
 public class GameController implements ControllerInterface {
 	private static final String DEFAULT_LEVEL = "/cyberpro/game/model/level1.txt";
 	private static BlockingQueue<String> commandQueue = new LinkedBlockingQueue<>();
 	private static final int DEFAULT_TIME_TILL_EXPLOSION = 4;
+	private static final TileType[] TILES_CAN_WALK_THROUGH = { TileType.FLOOR, TileType.EXPLOSION,
+			TileType.RAY_HORIZONTAL, TileType.RAY_VERTICAL };
 	private GameView gameView;
 	Game game;
 
@@ -38,16 +43,17 @@ public class GameController implements ControllerInterface {
 		// create a game
 		game = new Game("myGame", fileResourcesImporter.importLevelIntoBoard("level", DEFAULT_LEVEL));
 
+		System.out.println(getBoard());
 		// specify players in the Start menu and create them
-		game.addPlayer(new Player("Player1", new Coordinates(2, 2)));
-		game.addPlayer(new Player("Player2", new Coordinates(7, 6)));
+		game.addPlayer(new Player("Player1", new Coordinates(4, 4)));
+		game.addPlayer(new Player("Player2", new Coordinates(2, 6)));
 
 		gameProcess();
 
 	}
 
 	private void gameProcess() {
-		
+
 		// GameView initialization
 		Platform.startup(() -> {
 			Stage stage = new Stage();
@@ -74,7 +80,7 @@ public class GameController implements ControllerInterface {
 			}
 		}).start(); // Retrieving a command from the queue (waits if it's empty)
 
-		}
+	}
 
 	// processes a command from a Player
 	private void processCommand(String command, Game game) {
@@ -91,11 +97,18 @@ public class GameController implements ControllerInterface {
 
 	// movement right with a board size validation
 	private boolean moveRight(String playerId) {
+		// find a player by Id
 		Player playerFound = game.findPlayerById(playerId);
 		if (playerFound == null)
 			return false;
+		// calculating a new X coordinate
 		int x = playerFound.getCoordinates().getX() + playerFound.getSpeed();
-		if (x > game.getBoard().getSize() - 1) {
+		Coordinates newCoordinates = new Coordinates(x, playerFound.getCoordinates().getY());
+		// check if the new X coordinate is free for occupation
+		if (!isFreeToOccupy(newCoordinates) || isAnyPlayerHere(newCoordinates)) {
+			System.out.println("!isFreeToOccupy(newCoordinates)" + "=" + !isFreeToOccupy(newCoordinates));
+			System.out.println("AnyPlayerHere(newCoordinates)" + "=" + isAnyPlayerHere(newCoordinates));
+			System.out.println("newCoordinates = " + newCoordinates);
 			return false;
 		}
 		playerFound.getCoordinates().setX(x);
@@ -108,7 +121,12 @@ public class GameController implements ControllerInterface {
 		if (playerFound == null)
 			return false;
 		int x = playerFound.getCoordinates().getX() - playerFound.getSpeed();
-		if (x < 0) {
+		Coordinates newCoordinates = new Coordinates(x, playerFound.getCoordinates().getY());
+		// check if the new X coordinate is free for occupation
+		if (!isFreeToOccupy(newCoordinates) || isAnyPlayerHere(newCoordinates)) {
+			System.out.println("!isFreeToOccupy(newCoordinates)" + "=" + !isFreeToOccupy(newCoordinates));
+			System.out.println("AnyPlayerHere(newCoordinates)" + "=" + isAnyPlayerHere(newCoordinates));
+			System.out.println("newCoordinates = " + newCoordinates);
 			return false;
 		}
 		playerFound.getCoordinates().setX(x);
@@ -121,7 +139,12 @@ public class GameController implements ControllerInterface {
 		if (playerFound == null)
 			return false;
 		int y = playerFound.getCoordinates().getY() + playerFound.getSpeed();
-		if (y > game.getBoard().getSize() - 1) {
+		Coordinates newCoordinates = new Coordinates(playerFound.getCoordinates().getX(), y);
+		// check if the new Y coordinate is free for occupation
+		if (!isFreeToOccupy(newCoordinates) || isAnyPlayerHere(newCoordinates)) {
+			System.out.println("!isFreeToOccupy(newCoordinates)" + "=" + !isFreeToOccupy(newCoordinates));
+			System.out.println("AnyPlayerHere(newCoordinates)" + "=" + isAnyPlayerHere(newCoordinates));
+			System.out.println("newCoordinates = " + newCoordinates);
 			return false;
 		}
 		playerFound.getCoordinates().setY(y);
@@ -134,7 +157,12 @@ public class GameController implements ControllerInterface {
 		if (playerFound == null)
 			return false;
 		int y = playerFound.getCoordinates().getY() - playerFound.getSpeed();
-		if (y < 0) {
+		Coordinates newCoordinates = new Coordinates(playerFound.getCoordinates().getX(), y);
+		// check if the new Y coordinate is free for occupation
+		if (!isFreeToOccupy(newCoordinates) || isAnyPlayerHere(newCoordinates)) {
+			System.out.println("!isFreeToOccupy(newCoordinates)" + "=" + !isFreeToOccupy(newCoordinates));
+			System.out.println("AnyPlayerHere(newCoordinates)" + "=" + isAnyPlayerHere(newCoordinates));
+			System.out.println("newCoordinates = " + newCoordinates);
 			return false;
 		}
 		playerFound.getCoordinates().setY(y);
@@ -170,7 +198,7 @@ public class GameController implements ControllerInterface {
 	public void playerMoveRight(String playerId) {
 		commandQueue.add("R" + playerId);
 	}
-	
+
 	@Override
 	public void playerPlantBomb(String playerId) {
 		commandQueue.add("B" + playerId);
@@ -197,16 +225,41 @@ public class GameController implements ControllerInterface {
 		Player playerFound = game.findPlayerById(playerId);
 		if (playerFound == null)
 			return;
-		
+
 		Date now = new Date();
 
-        Calendar calendar = Calendar.getInstance();
-        calendar.setTime(now);
-        calendar.add(Calendar.SECOND, DEFAULT_TIME_TILL_EXPLOSION);
+		Calendar calendar = Calendar.getInstance();
+		calendar.setTime(now);
+		calendar.add(Calendar.SECOND, DEFAULT_TIME_TILL_EXPLOSION);
 
-        Date explosionTime = calendar.getTime();
-		
+		Date explosionTime = calendar.getTime();
+
 		game.addBomb(new Bomb(playerId, playerFound.getCoordinates(), false, explosionTime));
 		System.out.println("Player " + playerId + " planted a bomb");
+	}
+
+	// collision detection method
+	public boolean isFreeToOccupy(Coordinates coordinates) {
+		if (coordinates.getX() > game.getBoard().getSize() - 1 || coordinates.getX() < 0
+	|| coordinates.getY() > game.getBoard().getSize() - 1 || coordinates.getY() < 0) {
+			return false;
+		}
+		
+		TileType tileToValidate = game.getBoard().getCells()[coordinates.getX()][coordinates.getY()];
+		if (!Arrays.asList(TILES_CAN_WALK_THROUGH).contains(tileToValidate)) {
+			System.out.println("Obstacle = " + tileToValidate);
+			return false;
+		}
+		return true;
+	}
+
+	public boolean isAnyPlayerHere(Coordinates coordinates) {
+		for (Player player : game.getPlayers()) {
+			if (player.getCoordinates().getX() == coordinates.getX()
+					&& player.getCoordinates().getY() == coordinates.getY()) {
+				return true;
+			}
+		}
+		return false;
 	}
 }

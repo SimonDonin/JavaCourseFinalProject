@@ -103,7 +103,7 @@ public class GameView {
 				ImageView tileView = new ImageView();
 				tileView.setFitWidth(TILE_SIZE);
 				tileView.setFitHeight(TILE_SIZE);
-				switch (gameBoard[col][row]) {
+				switch (gameBoard[row][col]) {
 				case FLOOR -> tileView.setImage(floorImage);
 				case BRICK_WALL -> tileView.setImage(brickWallImage);
 				case CONCRETE_WALL -> tileView.setImage(concreteWallImage);
