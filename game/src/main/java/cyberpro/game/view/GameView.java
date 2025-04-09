@@ -23,6 +23,8 @@ import javafx.stage.Stage;
 import javafx.animation.TranslateTransition;
 import javafx.util.Duration;
 // End animation libs
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  *
@@ -47,8 +49,10 @@ public class GameView {
 	private final Image enemyImage = new Image(getClass().getResourceAsStream("Enemy.png"));
 	private final Image blastImage = new Image(getClass().getResourceAsStream("Blast.png"));
 
-	private int gridWidth = 16;
-	private int gridHeight = 16;
+        private final Map<String, ImageView> playerSprites = new HashMap<>();
+ 
+	private int gridWidth;
+	private int gridHeight;
 	// Shall be defined at model.
 
 	/*
@@ -80,6 +84,8 @@ public class GameView {
 		grid.setPadding(new Insets(0)); // Без отступов
 		grid.setHgap(0); // Без промежутков между колонками
 		grid.setVgap(0); // Без промежутков между строками
+                
+                gridWidth = gridHeight = controller.getBoard().getSize();
 
 		int sceneSize = TILE_SIZE * gridWidth; // или gridHeight, если нужна квадратная область
 		Scene scene = new Scene(grid, sceneSize, sceneSize);
@@ -100,47 +106,35 @@ public class GameView {
 		grid.getChildren().clear();
 		for (int row = 0; row < gridWidth; row++) {
 			for (int col = 0; col < gridHeight; col++) {
-				ImageView tileView = new ImageView();
-				tileView.setFitWidth(TILE_SIZE);
-				tileView.setFitHeight(TILE_SIZE);
-				switch (gameBoard[row][col]) {
+                            ImageView tileView = new ImageView();
+                            tileView.setFitWidth(TILE_SIZE);
+                            tileView.setFitHeight(TILE_SIZE);
+                            switch (gameBoard[row][col]) {
 				case FLOOR -> tileView.setImage(floorImage);
 				case BRICK_WALL -> tileView.setImage(brickWallImage);
 				case CONCRETE_WALL -> tileView.setImage(concreteWallImage);
-				}
-				grid.add(tileView, col, row);
+                            }
+                            grid.add(tileView, row, col);
 			}
 		}
 		for (Player player : players) {
-			ImageView tileView = new ImageView();
-			tileView.setFitWidth(TILE_SIZE);
-			tileView.setFitHeight(TILE_SIZE);
-			// How to get player color??
-			tileView.setImage(playerOneImage);
-
-			if (player.getCoordinates().getX() < gridWidth && player.getCoordinates().getY() < gridHeight) {
-				grid.add(tileView, player.getCoordinates().getX(), player.getCoordinates().getY());
-			} else {
-				System.out.println("Player is out of bounds: " + player.getCoordinates());
-			}
-
-			// grid.add(tileView, player.getCoordinates().getX(),
-			// player.getCoordinates().getY());
-			// We just put player tile above the grid at the end of draw board cycle.
-			// So it does not "shade" tiles below the player.
-		}
+                    String playerID = player.getId();
+                    ImageView playerView = new ImageView(playerOneImage);
+                    playerView.setFitWidth(TILE_SIZE);
+                    playerView.setFitHeight(TILE_SIZE);
+                    playerSprites.put(playerID, playerView);
+                    grid.add(playerView, player.getCoordinates().getX(), player.getCoordinates().getY());
+                }
 		// All players are on map
-
+                
+                // Place bombs
 		for (Bomb bomb : bombs) {
-			ImageView tileView = new ImageView();
-			tileView.setFitWidth(TILE_SIZE);
-			tileView.setFitHeight(TILE_SIZE); // Do we
-			// need to know, who put the bomb?? 
-			tileView.setImage(bombImage);
-			grid.add(tileView, bomb.getCoordinates().getX(), bomb.getCoordinates().getY()); // !! Bomb is not
-																							// implemented yet. Wait for
-																							// it
-		} // All bombs are on map
+                    ImageView bombView = new ImageView(bombImage);
+                    bombView.setFitWidth(TILE_SIZE);
+                    bombView.setFitHeight(TILE_SIZE);
+                    grid.add(bombView, bomb.getCoordinates().getX(), bomb.getCoordinates().getY());																			// it
+		} 
+                // All bombs are on map
 
 		// Bomb class is not finished yet
 	}
@@ -215,8 +209,56 @@ public class GameView {
 		}
 	}
 
-	public void moveSprite(Coordinates coordNew, String playerID) {
-		// [TODO]
-	}
+	public void moveSprite(Coordinates newCoord, String playerID) {
+            ImageView playerView = playerSprites.get(playerID);
+            if (playerView == null) return;
+ 
+            Integer currentCol = GridPane.getColumnIndex(playerView);
+            Integer currentRow = GridPane.getRowIndex(playerView);
+ 
+            if (currentCol == null || currentRow == null) return;
+ 
+            int newCol = newCoord.getX();
+            int newRow = newCoord.getY();
+ 
+            double dx = (newCol - currentCol) * TILE_SIZE;
+            double dy = (newRow - currentRow) * TILE_SIZE;
+ 
+            TranslateTransition transition = new TranslateTransition(Duration.millis(150), playerView);
+            transition.setByX(dx);
+            transition.setByY(dy);
+            transition.setOnFinished(e -> {
+                playerView.setTranslateX(0);
+ 		playerView.setTranslateY(0);
+ 		GridPane.setColumnIndex(playerView, newCol);
+ 		GridPane.setRowIndex(playerView, newRow);
+            });
+            transition.play();
+ 	}
+        
+        public void plantBomb(Bomb bomb) {
+            if (bomb == null) {
+                System.out.println("No bomb");
+                return;
+            } 
+            ImageView bombView = new ImageView(bombImage);
+            bombView.setFitWidth(TILE_SIZE);
+            bombView.setFitHeight(TILE_SIZE);
+            grid.add(bombView, bomb.getCoordinates().getX(), bomb.getCoordinates().getY());
+        }
+        
+        public void blastBomb(Bomb bomb, ArrayList<Coordinates> blastWave) {
+            if (bomb == null) {
+                System.out.println("No bomb");
+                return;
+            }
+            ImageView blastView = new ImageView(blastImage);
+            blastView.setFitWidth(TILE_SIZE);
+            blastView.setFitHeight(TILE_SIZE);
+            grid.add(blastView, bomb.getCoordinates().getX(), bomb.getCoordinates().getY());
+            for (Coordinates blast : blastWave) {
+                grid.add(blastView, blast.getX(), blast.getY());
+            }
+        }
 
 }
