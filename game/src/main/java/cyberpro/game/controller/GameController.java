@@ -22,6 +22,8 @@ public class GameController implements ControllerInterface {
 	private static final int DEFAULT_TIME_TILL_EXPLOSION = 4;
 	private static final TileType[] TILES_CAN_WALK_THROUGH = { TileType.FLOOR, TileType.EXPLOSION,
 			TileType.RAY_HORIZONTAL, TileType.RAY_VERTICAL };
+        // You a checkin tiles with is possible to walk abowe. But EXPLOSION, RAY 
+        // It is a sprite, not a tile. We will never have these tiles on board.
 	private GameView gameView;
 	Game game;
 
@@ -261,8 +263,14 @@ public class GameController implements ControllerInterface {
 
 		Date explosionTime = calendar.getTime();
 
-		game.addBomb(new Bomb(playerId, playerFound.getCoordinates(), false, explosionTime));
+		// game.addBomb(new Bomb(playerId, playerFound.getCoordinates(), false, explosionTime));
+                Bomb newBomb = new Bomb(playerId, playerFound.getCoordinates(), false, explosionTime);
+                game.addBomb(newBomb);
+                
 		System.out.println("Player " + playerId + " planted a bomb");
+                Platform.runLater(() -> {
+                    gameView.plantBomb(newBomb);
+                });
 	}
 
 	// collision detection method
