@@ -108,7 +108,7 @@ public class GameView {
 				case BRICK_WALL -> tileView.setImage(brickWallImage);
 				case CONCRETE_WALL -> tileView.setImage(concreteWallImage);
 				}
-				grid.add(tileView, row, col);
+				grid.add(tileView, col, row);
 			}
 		}
 		for (Player player : players) {
