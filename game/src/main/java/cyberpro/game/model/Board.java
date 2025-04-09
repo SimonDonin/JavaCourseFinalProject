@@ -15,7 +15,7 @@ public class Board {
 	}
 
 	public TileType getCell(int x, int y) {
-		return cells[x][y];
+		return cells[y][x];
 	}
 
 	public TileType[][] getCells() {
@@ -23,7 +23,7 @@ public class Board {
 	}
 
 	public void setCell(int x, int y, TileType cell) {
-		cells[x][y] = cell;
+		cells[y][x] = cell;
 	}
 
 	public int getSize() {
@@ -33,7 +33,7 @@ public class Board {
 	public void initialize() {
 		for (int i = 0; i < size; i++) {
 			for (int j = 0; j < size; j++) {
-				cells[i][j] = TileType.FLOOR;
+				cells[j][i] = TileType.FLOOR;
 			}
 		}
 	}
@@ -47,7 +47,7 @@ public class Board {
 		StringBuilder str = new StringBuilder();
 		for (int i = 0; i < size; i++) {
 			for (int j = 0; j < size; j++) {
-				str.append(i + ":" + j + "=" + cells[i][j] + " ");
+				str.append(i + ":" + j + "=" + cells[j][i] + " ");
 			}
 			str.append("\n");
 		}
