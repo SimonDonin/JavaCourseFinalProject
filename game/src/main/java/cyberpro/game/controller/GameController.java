@@ -61,6 +61,7 @@ public class GameController implements ControllerInterface {
 			Stage stage = new Stage();
 			gameView = new GameView(stage, this);
 		});
+                
 		Platform.runLater(() -> {
 			gameView.drawGrid(game.getPlayers(), game.getBombs(), game.getModifiers());
 		});
@@ -118,7 +119,7 @@ public class GameController implements ControllerInterface {
                 // Begin of new code
                 Coordinates newCoord = new Coordinates(x, playerFound.getCoordinates().getY());
 		Platform.runLater(() -> {
-                    gameView.moveSprite(newCoord, playerId);
+                    gameView.moveSprite(playerFound.getCoordinates(), newCoord, playerFound);
                 });
                 // End of new code
                 playerFound.getCoordinates().setX(x);
@@ -143,7 +144,7 @@ public class GameController implements ControllerInterface {
                                 // Begin of new code
                 Coordinates newCoord = new Coordinates(x, playerFound.getCoordinates().getY());
 		Platform.runLater(() -> {
-                    gameView.moveSprite(newCoord, playerId);
+                    gameView.moveSprite(playerFound.getCoordinates(), newCoord, playerFound);
                 });
                 // End of new code
 		playerFound.getCoordinates().setX(x);
@@ -165,9 +166,9 @@ public class GameController implements ControllerInterface {
 			return false;
 		}
                 // Begin of new code
-                Coordinates newCoord = new Coordinates(playerFound.getCoordinates().getX(), y);
+                // Coordinates newCoord = new Coordinates(playerFound.getCoordinates().getX(), y);
 		Platform.runLater(() -> {
-                    gameView.moveSprite(newCoord, playerId);
+                    gameView.moveSprite(playerFound.getCoordinates(), newCoordinates, playerFound);
                 });
                 // End of new code
 		playerFound.getCoordinates().setY(y);
@@ -188,10 +189,9 @@ public class GameController implements ControllerInterface {
 			System.out.println("newCoordinates = " + newCoordinates);
 			return false;
 		}
-                // Begin of new code
-                Coordinates newCoord = new Coordinates(playerFound.getCoordinates().getX(), y);
+                
 		Platform.runLater(() -> {
-                    gameView.moveSprite(newCoord, playerId);
+                    gameView.moveSprite(playerFound.getCoordinates(), newCoordinates, playerFound);
                 });
                 // End of new code
 		playerFound.getCoordinates().setY(y);
