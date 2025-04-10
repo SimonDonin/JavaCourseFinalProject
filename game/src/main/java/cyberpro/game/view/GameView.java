@@ -204,29 +204,37 @@ public class GameView {
 		}
 	} */
 
-    public void moveSprite(Coordinates newCoord, Player player) {
+    public void moveSprite(Coordinates oldCoord, Coordinates newCoord, Player player) {
         ImageView playerView = playerSprites.get(player.getId());
         if (playerView == null) return;
  
-        int currentX = player.getCoordinates().getX();
-        int currentY = player.getCoordinates().getY();
+        int oldX = oldCoord.getX();
+        int oldY = oldCoord.getY();
  
         int newX = newCoord.getX();
         int newY = newCoord.getY();
         
-        if (Math.abs(newX - currentX) > 1) { System.out.println("What a heck is going on here"); }
-        System.out.println("Move from coordinates (" + currentX + ", " + currentY + ") to coordinates (" + newX + ", " + newY + ")");
- 
-        int dx = (newX - currentX) * TILE_SIZE;
-        int dy = (newY - currentY) * TILE_SIZE;
+        // Проверка валидности перехода
+        if (Math.abs(newX - oldX) > 1 || Math.abs(newY - oldY) > 1) {
+            System.err.printf("Unexpected move: from (%d, %d) to (%d, %d)%n", oldX, oldY, newX, newY);
+        return;
+        }
+        
+        // Movement log
+        System.out.printf("Moving player %s from (%d, %d) to (%d, %d)%n", player.getId(), oldX, oldY, newX, newY);
+
+        
+        int deltaX = (newX - oldX) * TILE_SIZE;
+        int deltaY = (newY - oldY) * TILE_SIZE;
  
         TranslateTransition transition = new TranslateTransition(Duration.millis(150), playerView);
-        transition.setByX(dx);
-        transition.setByY(dy);
+        transition.setByX(deltaX);
+        transition.setByY(deltaY);
         transition.setOnFinished(e -> {
             playerView.setTranslateX(0);
             playerView.setTranslateY(0);
             // Now player position is perfectly in the cell
+            grid.getChildren().remove(playerView); // More safe than just add new
             grid.add(playerView, newX, newY);
             // Actually set player at new position
         });
