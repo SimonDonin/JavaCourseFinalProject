@@ -123,6 +123,12 @@ public class GameView {
 	stage.setScene(scene);
 	stage.setTitle("Bombermen");
 	stage.show();
+        
+        stage.setOnCloseRequest(event -> {
+            System.out.println("Stage is closing...");
+            System.exit(0); // <-- принудительно завершает процесс
+        });
+    
 
 	grid.requestFocus(); // Запрашиваем фокус
     }
@@ -207,6 +213,9 @@ public class GameView {
  
         int newX = newCoord.getX();
         int newY = newCoord.getY();
+        
+        if (Math.abs(newX - currentX) > 1) { System.out.println("What a heck is going on here"); }
+        System.out.println("Move from coordinates (" + currentX + ", " + currentY + ") to coordinates (" + newX + ", " + newY + ")");
  
         int dx = (newX - currentX) * TILE_SIZE;
         int dy = (newY - currentY) * TILE_SIZE;
@@ -257,5 +266,6 @@ public class GameView {
     private void handleKeyRelease(KeyEvent event) {
         pressedKeys.remove(event.getCode());
     }
+    
     
 }
