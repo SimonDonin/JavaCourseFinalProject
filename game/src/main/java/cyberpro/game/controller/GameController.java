@@ -118,7 +118,7 @@ public class GameController implements ControllerInterface {
                 // Begin of new code
                 Coordinates newCoord = new Coordinates(x, playerFound.getCoordinates().getY());
 		Platform.runLater(() -> {
-                    gameView.moveSprite(newCoord, playerId);
+                    gameView.moveSprite(newCoord, playerFound);
                 });
                 // End of new code
                 playerFound.getCoordinates().setX(x);
@@ -143,7 +143,7 @@ public class GameController implements ControllerInterface {
                                 // Begin of new code
                 Coordinates newCoord = new Coordinates(x, playerFound.getCoordinates().getY());
 		Platform.runLater(() -> {
-                    gameView.moveSprite(newCoord, playerId);
+                    gameView.moveSprite(newCoord, playerFound);
                 });
                 // End of new code
 		playerFound.getCoordinates().setX(x);
@@ -167,7 +167,7 @@ public class GameController implements ControllerInterface {
                 // Begin of new code
                 Coordinates newCoord = new Coordinates(playerFound.getCoordinates().getX(), y);
 		Platform.runLater(() -> {
-                    gameView.moveSprite(newCoord, playerId);
+                    gameView.moveSprite(newCoord, playerFound);
                 });
                 // End of new code
 		playerFound.getCoordinates().setY(y);
@@ -191,7 +191,7 @@ public class GameController implements ControllerInterface {
                 // Begin of new code
                 Coordinates newCoord = new Coordinates(playerFound.getCoordinates().getX(), y);
 		Platform.runLater(() -> {
-                    gameView.moveSprite(newCoord, playerId);
+                    gameView.moveSprite(newCoord, playerFound);
                 });
                 // End of new code
 		playerFound.getCoordinates().setY(y);
