@@ -36,14 +36,17 @@ import javafx.animation.AnimationTimer;
 public class GameView {
     private ControllerInterface controller;
     private final int TILE_SIZE = 40;
-    // This is actually size of a sprite. It will depend on actual size of game
-    // board
+    // This is actually size of a sprite. It will depend on actual size of game board
+    
     private GridPane grid;
     // Create GridPane object to display all graphical objects.
     // It is also possible to use TilePane, but we use GridPane because of better
     // control methods
+    
     private TileType[][] gameBoard;
-    // Game board array. We have to recive it from a Controller
+    // Game board array. We show a board basing on this array
+    
+    // Begin of sprite loading code
     private final Image playerOneImage = new Image(getClass().getResourceAsStream("Character1.png"));
     private final Image brickWallImage = new Image(getClass().getResourceAsStream("BrickWall.png"));
     private final Image concreteWallImage = new Image(getClass().getResourceAsStream("ConcreteWall.png"));
@@ -51,31 +54,32 @@ public class GameView {
     private final Image bombImage = new Image(getClass().getResourceAsStream("Bomb.png"));
     private final Image enemyImage = new Image(getClass().getResourceAsStream("Enemy.png"));
     private final Image blastImage = new Image(getClass().getResourceAsStream("Blast.png"));
+    // End of sprite loading
 
     private final Map<String, ImageView> playerSprites = new HashMap<>();
         
     private final Set<KeyCode> pressedKeys = new HashSet<>();
     
     private long lastUpdate = 0; // Tracks the last update time
-    private static final long MOVEMENT_DELAY = 100_000_000; // 200ms in nanoseconds
+    private static final long MOVEMENT_DELAY = 100_000_000; // 100ms in nanoseconds
 
  
     private int gridWidth;
     private int gridHeight;
-    // Shall be defined at model.
+    // Defined at model, but it is faster to keep a copy of this inside class.
 
 
     public GameView(Stage stage, ControllerInterface controller) {
-        this.controller = controller; // Сохраняем контроллер для дальнейшей работы
-	this.gameBoard = controller.getBoard().getCells(); // Получаем массив плиток из Board
+        this.controller = controller; // Save controller reference
+	this.gameBoard = controller.getBoard().getCells(); // Save gameboard
 
 	grid = new GridPane();
-	grid.setFocusTraversable(true); // Устанавливаем фокус для ввода
+	grid.setFocusTraversable(true); // Take an input focus
 
-	// Убираем отступы и промежутки
-	grid.setPadding(new Insets(0)); // Без отступов
-	grid.setHgap(0); // Без промежутков между колонками
-	grid.setVgap(0); // Без промежутков между строками
+	// No spacing, no padding between tiles are allowed
+	grid.setPadding(new Insets(0));
+	grid.setHgap(0);
+	grid.setVgap(0);
                 
         gridWidth = gridHeight = controller.getBoard().getSize();
 
@@ -83,7 +87,6 @@ public class GameView {
 	Scene scene = new Scene(grid, sceneSize, sceneSize);
         grid.setOnKeyPressed(this::handleKeyPress);
         grid.setOnKeyReleased(this::handleKeyRelease);
-        // grid.setOnKeyPressed(this::handleKeyPress); // Обработка нажатия клавиш
         
         AnimationTimer timer = new AnimationTimer() {
         @Override
@@ -112,6 +115,9 @@ public class GameView {
                 }
                 if (pressedKeys.contains(KeyCode.D)) {
                     controller.playerMoveRight(controller.getPlayerIdByNumber(2));
+                }
+                if (pressedKeys.contains(KeyCode.G)) {
+                    controller.playerPlantBomb(controller.getPlayerIdByNumber(2));
                 }
                 // Update the last update time
                 lastUpdate = now;
