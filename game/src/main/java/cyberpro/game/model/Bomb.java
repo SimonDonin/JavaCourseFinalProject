@@ -1,6 +1,7 @@
 package cyberpro.game.model;
 
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 
@@ -15,6 +16,8 @@ public class Bomb {
 	private Date explosionTime;
 	private int raysRange;
 	private Date raysOffDate;
+	private ArrayList<Coordinates> raysVertical;
+	private ArrayList<Coordinates> raysHorizontal;
 
 	/*
 	 * A player plants a bomb and the following input values are passing on:
@@ -30,6 +33,40 @@ public class Bomb {
 		this.distantExplosion = distantExplosion;
 		this.explosionTime = explosionTime;
 		this.raysRange = DEFAULT_RAYS_RANGE;
+		this.raysHorizontal = new ArrayList<Coordinates>();
+		this.raysVertical = new ArrayList<Coordinates>();
+	}
+
+	public static int getDefaultRaysRange() {
+		return DEFAULT_RAYS_RANGE;
+	}
+
+	public ArrayList<Coordinates> getRaysVertical() {
+		return raysVertical;
+	}
+
+	public boolean addToRaysHorizontal(Coordinates coordinates) {
+		for (Coordinates coords : raysHorizontal) {
+			if (coords.getX() == coordinates.getX() && coords.getY() == coordinates.getY()) {
+				return false; 
+			}
+			raysHorizontal.add(coordinates);
+		}
+		return true;
+	}
+	
+	public boolean addToRaysVertical(Coordinates coordinates) {
+		for (Coordinates coords : raysHorizontal) {
+			if (coords.getX() == coordinates.getX() && coords.getY() == coordinates.getY()) {
+				return false; 
+			}
+			raysVertical.add(coordinates);
+		}
+		return true;
+	}
+	
+	public ArrayList<Coordinates> getRaysHorizontal() {
+		return raysHorizontal;
 	}
 
 	public String getId() {
@@ -46,18 +83,20 @@ public class Bomb {
 	public void explode() {
 		Date currentDate = new Date();
 
-		// Календарь для вычислений
+		// A calendar for calculations
 		Calendar calendar = Calendar.getInstance();
 		calendar.setTime(currentDate);
-		calendar.add(Calendar.SECOND, DEFAULT_RAYS_DURATION); // Добавляем заданное время
+		calendar.add(Calendar.SECOND, DEFAULT_RAYS_DURATION); // Adding the time specified
 
-		// Получаем новую дату
+		// Getting a new date
 		raysOffDate = calendar.getTime();
 
-		// Форматируем дату
+		// Formating the date
 		SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 		String formattedDate = dateFormat.format(raysOffDate);
-		System.out.println("Новое время: " + formattedDate);
+		System.out.println("New time: " + formattedDate);
+		
+		System.out.println("The bomb id = " + id + " has exploded!");
 	}
 
 }
