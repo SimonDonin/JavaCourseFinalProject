@@ -1,6 +1,9 @@
 package cyberpro.game.controller;
 
+import java.util.ArrayList;
+
 import cyberpro.game.model.Board;
+import cyberpro.game.model.Player;
 
 public interface ControllerInterface {
 	void playerMoveUp(String playerId);
@@ -16,4 +19,6 @@ public interface ControllerInterface {
 	String getPlayerIdByNumber(int playerNumber);
 
 	Board getBoard();
+	
+	ArrayList<Player> getPlayers();
 }

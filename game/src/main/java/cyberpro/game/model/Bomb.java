@@ -16,8 +16,7 @@ public class Bomb {
 	private Date explosionTime;
 	private int raysRange;
 	private Date raysOffDate;
-	private ArrayList<Coordinates> raysVertical;
-	private ArrayList<Coordinates> raysHorizontal;
+	private ArrayList<Coordinates> rays;
 
 	/*
 	 * A player plants a bomb and the following input values are passing on:
@@ -34,8 +33,7 @@ public class Bomb {
 		this.distantExplosion = distantExplosion;
 		this.explosionTime = explosionTime;
 		this.raysRange = DEFAULT_RAYS_RANGE;
-		this.raysHorizontal = new ArrayList<Coordinates>();
-		this.raysVertical = new ArrayList<Coordinates>();
+		this.rays = new ArrayList<Coordinates>();
 	}
 
 	public static int getDefaultRaysRange() {
@@ -46,37 +44,22 @@ public class Bomb {
 		return DEFAULT_RAYS_DURATION;
 	}
 
-	public ArrayList<Coordinates> getRaysVertical() {
-		return raysVertical;
+	public ArrayList<Coordinates> getRays() {
+		return rays;
 	}
 
-	public boolean addToRaysHorizontal(Coordinates coordinates) {
+	public boolean addToRays(Coordinates coordinates) {
 		System.out.println("Adding horizontal coords " + coordinates);
-		for (Coordinates coords : raysHorizontal) {
+		for (Coordinates coords : rays) {
 			if (coords.getX() == coordinates.getX() && coords.getY() == coordinates.getY()) {
 				return false;
 			}
 		}
-		raysHorizontal.add(coordinates);
+		rays.add(coordinates);
 		return true;
 	}
 
-	public boolean addToRaysVertical(Coordinates coordinates) {
-		System.out.println("Adding vertical coords " + coordinates);
-		for (Coordinates coords : raysVertical) {
-			if (coords.getX() == coordinates.getX() && coords.getY() == coordinates.getY()) {
-				return false;
-			}
-		}
-		raysVertical.add(coordinates);
-		return true;
-	}
-
-	public ArrayList<Coordinates> getRaysHorizontal() {
-		return raysHorizontal;
-	}
-
-	public String getId() {
+		public String getId() {
 		return id;
 	}
 
