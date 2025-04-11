@@ -132,10 +132,9 @@ public class GameView {
         
         stage.setOnCloseRequest(event -> {
             System.out.println("Stage is closing...");
-            System.exit(0); // <-- принудительно завершает процесс
+            System.exit(0); // <-- Closing an app and killing all ghost threads
         });
     
-
 	grid.requestFocus(); // Запрашиваем фокус
     }
 
@@ -145,6 +144,7 @@ public class GameView {
 
     public void drawGrid(ArrayList<Player> players, ArrayList<Bomb> bombs, ArrayList<Modifier> modifiers) {
         grid.getChildren().clear();
+        // It is more safe to clear all grid before add new tiles on it.
         for (int row = 0; row < gridWidth; row++) {
             for (int col = 0; col < gridHeight; col++) {
                 ImageView tileView = new ImageView();
@@ -179,46 +179,16 @@ public class GameView {
         // All bombs are on map
 
     }
-        
-        /*
-	private void handleKeyPress(KeyEvent event) {
-		/*
-		 * if (event.getCode() == KeyCode.UP)
-		 * controller.playerMoveUp(controller.getPlayerIdByNumber(1)); if
-		 * (event.getCode() == KeyCode.DOWN)
-		 * controller.playerMoveDown(controller.getPlayerIdByNumber(1)); if
-		 * (event.getCode() == KeyCode.LEFT)
-		 * controller.playerMoveLeft(controller.getPlayerIdByNumber(1)); if
-		 * (event.getCode() == KeyCode.RIGHT)
-		 * controller.playerMoveRight(controller.getPlayerIdByNumber(1));
-		 * 
-		 * if (event.getCode() == KeyCode.W)
-		 * controller.playerMoveUp(controller.getPlayerIdByNumber(2)); if
-		 * (event.getCode() == KeyCode.S)
-		 * controller.playerMoveDown(controller.getPlayerIdByNumber(2)); if
-		 * (event.getCode() == KeyCode.A)
-		 * controller.playerMoveLeft(controller.getPlayerIdByNumber(2)); if
-		 * (event.getCode() == KeyCode.D)
-		 * controller.playerMoveRight(controller.getPlayerIdByNumber(2));
-		
 
-		}
-
-		if (playerNumber != 0) {
-			System.out.println("Key pressed " + "by the Player " + controller.getPlayerIdByNumber(playerNumber) + " "
-					+ event.getCode());
-		}
-	} */
-
-    public void moveSprite(Coordinates oldCoord, Coordinates newCoord, Player player) {
+    public void moveSprite(Coordinates oldCoordinates, Coordinates newCoordinates, Player player) {
         ImageView playerView = playerSprites.get(player.getId());
         if (playerView == null) return;
  
-        int oldX = oldCoord.getX();
-        int oldY = oldCoord.getY();
+        int oldX = oldCoordinates.getX();
+        int oldY = oldCoordinates.getY();
  
-        int newX = newCoord.getX();
-        int newY = newCoord.getY();
+        int newX = newCoordinates.getX();
+        int newY = newCoordinates.getY();
         
         // Проверка валидности перехода
         if (Math.abs(newX - oldX) > 1 || Math.abs(newY - oldY) > 1) {
@@ -227,7 +197,7 @@ public class GameView {
         }
         
         // Movement log
-        System.out.printf("Moving player %s from (%d, %d) to (%d, %d)%n", player.getId(), oldX, oldY, newX, newY);
+        System.out.printf("Moving player %s from %s to %s%n", player.getId(), oldCoordinates, newCoordinates);
 
         
         int deltaX = (newX - oldX) * TILE_SIZE;
@@ -249,9 +219,10 @@ public class GameView {
         
     public void plantBomb(Bomb bomb) {
         if (bomb == null) {
-            System.out.println("No bomb");
+            System.err.println("[plantBomb] Bomb is null. Skipping.");
             return;
-        } 
+        }
+        
         ImageView bombView = new ImageView(bombImage);
         bombView.setFitWidth(TILE_SIZE);
         bombView.setFitHeight(TILE_SIZE);
