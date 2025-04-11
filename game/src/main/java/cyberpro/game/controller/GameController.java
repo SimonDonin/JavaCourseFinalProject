@@ -25,9 +25,13 @@ public class GameController implements ControllerInterface {
 	private static BlockingQueue<String> commandQueue = new LinkedBlockingQueue<>();
 	private static final int DEFAULT_TIME_TILL_EXPLOSION = 4;
 	private static final TileType[] TILES_CAN_WALK_THROUGH = { TileType.FLOOR, TileType.EXPLOSION,
-			TileType.RAY_HORIZONTAL, TileType.RAY_VERTICAL };
+			TileType.RAY_HORIZONTAL, TileType.RAY_VERTICAL, TileType.RAY };
+	private static final TileType[] TILES_CANT_WALK_THROUGH = { TileType.CONCRETE_WALL, TileType.BRICK_WALL };
+
 	private static final TileType[] TILES_EXPLOSIBLE = { TileType.FLOOR, TileType.EXPLOSION, TileType.RAY_HORIZONTAL,
-			TileType.RAY_VERTICAL, TileType.BRICK_WALL };
+			TileType.RAY_VERTICAL, TileType.RAY, TileType.BRICK_WALL };
+	private static final TileType[] TILES_DESTRUCTABLE = { TileType.BRICK_WALL };
+
 	private ScheduledExecutorService schedulerForExplosion = Executors.newScheduledThreadPool(10);
 	private ScheduledExecutorService schedulerForRaysOff = Executors.newScheduledThreadPool(10);
 
@@ -122,7 +126,7 @@ public class GameController implements ControllerInterface {
 		int x = playerFound.getCoordinates().getX() + playerFound.getSpeed();
 		Coordinates newCoordinates = new Coordinates(x, playerFound.getCoordinates().getY());
 		// check if the new X coordinate is free for occupation
-		if (!isFreeToOccupy(newCoordinates) /*|| isAnyPlayerHere(newCoordinates)*/) {
+		if (!isFreeToOccupy(newCoordinates) /* || isAnyPlayerHere(newCoordinates) */) {
 			System.out.println("!isFreeToOccupy(newCoordinates)" + "=" + !isFreeToOccupy(newCoordinates));
 			System.out.println("AnyPlayerHere(newCoordinates)" + "=" + isAnyPlayerHere(newCoordinates));
 			System.out.println("Move from coordinates (" + currentX + ", " + currentY + ") to coordinates ("
@@ -154,7 +158,7 @@ public class GameController implements ControllerInterface {
 		int x = playerFound.getCoordinates().getX() - playerFound.getSpeed();
 		Coordinates newCoordinates = new Coordinates(x, playerFound.getCoordinates().getY());
 		// check if the new X coordinate is free for occupation
-		if (!isFreeToOccupy(newCoordinates) /*| isAnyPlayerHere(newCoordinates)*/) {
+		if (!isFreeToOccupy(newCoordinates) /* | isAnyPlayerHere(newCoordinates) */) {
 			System.out.println("!isFreeToOccupy(newCoordinates)" + "=" + !isFreeToOccupy(newCoordinates));
 			System.out.println("AnyPlayerHere(newCoordinates)" + "=" + isAnyPlayerHere(newCoordinates));
 			System.out.println("Move from coordinates (" + currentX + ", " + currentY + ") to coordinates ("
@@ -184,7 +188,7 @@ public class GameController implements ControllerInterface {
 		int y = playerFound.getCoordinates().getY() + playerFound.getSpeed();
 		Coordinates newCoordinates = new Coordinates(playerFound.getCoordinates().getX(), y);
 		// check if the new Y coordinate is free for occupation
-		if (!isFreeToOccupy(newCoordinates) /*|| isAnyPlayerHere(newCoordinates)*/) {
+		if (!isFreeToOccupy(newCoordinates) /* || isAnyPlayerHere(newCoordinates) */) {
 			System.out.println("!isFreeToOccupy(newCoordinates)" + "=" + !isFreeToOccupy(newCoordinates));
 			System.out.println("AnyPlayerHere(newCoordinates)" + "=" + isAnyPlayerHere(newCoordinates));
 			System.out.println("Move from coordinates (" + currentX + ", " + currentY + ") to coordinates ("
@@ -216,7 +220,7 @@ public class GameController implements ControllerInterface {
 		int y = playerFound.getCoordinates().getY() - playerFound.getSpeed();
 		Coordinates newCoordinates = new Coordinates(playerFound.getCoordinates().getX(), y);
 		// check if the new Y coordinate is free for occupation
-		if (!isFreeToOccupy(newCoordinates) /*|| isAnyPlayerHere(newCoordinates)*/) {
+		if (!isFreeToOccupy(newCoordinates) /* || isAnyPlayerHere(newCoordinates) */) {
 			System.out.println("!isFreeToOccupy(newCoordinates)" + "=" + !isFreeToOccupy(newCoordinates));
 			System.out.println("AnyPlayerHere(newCoordinates)" + "=" + isAnyPlayerHere(newCoordinates));
 			System.out.println("Move from coordinates (" + currentX + ", " + currentY + ") to coordinates ("
@@ -326,76 +330,238 @@ public class GameController implements ControllerInterface {
 			return;
 		bombFound.explode();
 		System.out.println("\n\n" + bombFound);
-		Coordinates ihorizontalCoordinate;
-		Coordinates iverticalCoordinate;
-		// collecting coordinates for potential horizontal and vertical rays
-		for (int i = -Bomb.getDefaultRaysRange(); i <= Bomb.getDefaultRaysRange(); i++) {
+		Coordinates iCoordinate;
+
+		// adding explosion rays - separate iterations to 4 sides
+		int raysRange = Bomb.getDefaultRaysRange();
+		for (int i = 1; i <= raysRange; i++) {
 			System.out.println("i = " + i);
-			ihorizontalCoordinate = new Coordinates(bombFound.getCoordinates().getX() + i,
-					bombFound.getCoordinates().getY());
-			System.out.println("Horizontal coords are\n" + ihorizontalCoordinate);
-			System.out.println("areCoordinatesInsideBoard(horizontalCoordinate) = "
-					+ areCoordinatesInsideBoard(ihorizontalCoordinate));
-			System.out.println("isFreeToOccupy(horizontalCoordinate) = " + isFreeToOccupy(ihorizontalCoordinate));
-			System.out.println("isExplosible(ihorizontalCoordinate) = " + isExplosible(ihorizontalCoordinate));
-			System.out.println("isAnyPlayerHere(ihorizontalCoordinate) = " + isAnyPlayerHere(ihorizontalCoordinate));
-			iverticalCoordinate = new Coordinates(bombFound.getCoordinates().getX(),
-					bombFound.getCoordinates().getY() + i);
-			System.out.println("Vertical coords are\n" + iverticalCoordinate);
-			System.out.println("areCoordinatesInsideBoard(verticalCoordinate) = "
-					+ areCoordinatesInsideBoard(iverticalCoordinate));
-			System.out.println("isFreeToOccupy(verticalCoordinate) = " + isFreeToOccupy(iverticalCoordinate));
-			System.out.println("isExplosible(iverticalCoordinate) = " + isExplosible(iverticalCoordinate));
-			System.out.println("isFreeToOccupy(iverticalCoordinate) = " + isFreeToOccupy(iverticalCoordinate));
-			System.out.println("isAnyPlayerHere(iverticalCoordinate) = " + isAnyPlayerHere(iverticalCoordinate));
-			if (isAnyPlayerHere(ihorizontalCoordinate)) {
-				Player playerFound = playerByCoordinates(ihorizontalCoordinate);
-				System.out.println("Player is here ! It's " + playerByCoordinates(ihorizontalCoordinate));
-				if (playerFound != null) {
-					playerFound.kill();
-				}
-			} else if (isAnyPlayerHere(iverticalCoordinate)) {
-				System.out.println("Player is here ! It's " + playerByCoordinates(iverticalCoordinate));
-				Player playerFound = playerByCoordinates(iverticalCoordinate);
+			// collecting coordinates for potential rays
+			// direction - to the right
+			iCoordinate = new Coordinates(bombFound.getCoordinates().getX() + i, bombFound.getCoordinates().getY());
+
+			// printing for diagnostics
+			System.out.println("Horizontal coords are\n" + iCoordinate);
+			System.out.println(
+					"areCoordinatesInsideBoard(iCoordinate) = " + areCoordinatesInsideBoard(iCoordinate));
+			System.out.println("isFreeToOccupy(iCoordinate) = " + isFreeToOccupy(iCoordinate));
+			System.out.println("isExplosible(ihorizontalCoordinate) = " + isExplosible(iCoordinate));
+			System.out.println("isAnyPlayerHere(ihorizontalCoordinate) = " + isAnyPlayerHere(iCoordinate));
+
+			// killing players
+			if (isAnyPlayerHere(iCoordinate)) {
+				Player playerFound = playerByCoordinates(iCoordinate);
+				System.out.println("Player is here ! It's " + playerByCoordinates(iCoordinate));
 				if (playerFound != null) {
 					playerFound.kill();
 				}
 			}
-			
-			if (areCoordinatesInsideBoard(ihorizontalCoordinate) && isExplosible(ihorizontalCoordinate) && i != 0) {
-				bombFound.addToRaysHorizontal(ihorizontalCoordinate);
-				if (game.getBoard().getCell(ihorizontalCoordinate.getY(),
-						ihorizontalCoordinate.getX()) == TileType.BRICK_WALL) {
-					game.getBoard().setCell(ihorizontalCoordinate.getY(), ihorizontalCoordinate.getX(), TileType.FLOOR);
-					System.out.println("Demolishing BRICK WALL " + ihorizontalCoordinate);
-					draw();
-				}
-				System.out.println("Horizontal rays coords are\n" + bombFound.getRaysHorizontal());
-				System.out.println("Vertical rays coords are\n" + bombFound.getRaysVertical());
+			// if the coordinate is out of the board, quit the cycle
+			if (!areCoordinatesInsideBoard(iCoordinate)) {
+				break;
 			}
-			if (areCoordinatesInsideBoard(iverticalCoordinate) && isExplosible(iverticalCoordinate) && i != 0) {
-				bombFound.addToRaysVertical(iverticalCoordinate);
-				if (game.getBoard().getCell(iverticalCoordinate.getY(),
-						iverticalCoordinate.getX()) == TileType.BRICK_WALL) {
-					game.getBoard().setCell(iverticalCoordinate.getY(), iverticalCoordinate.getX(), TileType.FLOOR);
-					System.out.println("Demolishing BRICK WALL " + iverticalCoordinate);
+
+			// find out if this coordinate is busy with a solid tile
+			if (!isFreeToOccupy(iCoordinate)) {
+				// if this solid tile is destructible, demolish it
+				if (isDestructible(iCoordinate)) {
+					game.getBoard().setCell(iCoordinate.getX(), iCoordinate.getY(), TileType.FLOOR);
+					System.out.println("Demolishing BRICK WALL " + iCoordinate);
 					draw();
+					System.out.println("After demolishing the tile is " + game.getBoard().getCell(iCoordinate.getX(), iCoordinate.getY()));
 				}
-				System.out.println("Horizontal rays coords are\n" + bombFound.getRaysHorizontal());
-				System.out.println("Vertical rays coords are\n" + bombFound.getRaysVertical());
+				// rays can't get through this obstacle
+				break;
 			}
+			// adding ray at the icoordinate cell
+			bombFound.addToRays(iCoordinate);
 		}
-		System.out.println("Bomb coords are\n" + bombFound.getCoordinates());
-		System.out.println("Horizontal rays coords are\n" + bombFound.getRaysHorizontal());
-		System.out.println("Vertical rays coords are\n" + bombFound.getRaysVertical());
+
+		for (int i = 1; i <= raysRange; i++) {
+			System.out.println("i = " + i);
+			// collecting coordinates for potential rays
+			// direction - to the left
+			iCoordinate = new Coordinates(bombFound.getCoordinates().getX() - i, bombFound.getCoordinates().getY());
+
+			// printing for diagnostics
+			System.out.println("Horizontal coords are\n" + iCoordinate);
+			System.out.println(
+					"areCoordinatesInsideBoard(horizontalCoordinate) = " + areCoordinatesInsideBoard(iCoordinate));
+			System.out.println("isFreeToOccupy(horizontalCoordinate) = " + isFreeToOccupy(iCoordinate));
+			System.out.println("isExplosible(ihorizontalCoordinate) = " + isExplosible(iCoordinate));
+			System.out.println("isAnyPlayerHere(ihorizontalCoordinate) = " + isAnyPlayerHere(iCoordinate));
+
+			// killing players
+			if (isAnyPlayerHere(iCoordinate)) {
+				Player playerFound = playerByCoordinates(iCoordinate);
+				System.out.println("Player is here ! It's " + playerByCoordinates(iCoordinate));
+				if (playerFound != null) {
+					playerFound.kill();
+				}
+			}
+			// if the coordinate is out of the board, quit the cycle
+			if (!areCoordinatesInsideBoard(iCoordinate)) {
+				break;
+			}
+
+			// find out if this coordinate is busy with a solid tile
+			if (!isFreeToOccupy(iCoordinate)) {
+				// if this solid tile is destructible, demolish it
+				if (isDestructible(iCoordinate)) {
+					game.getBoard().setCell(iCoordinate.getX(), iCoordinate.getY(), TileType.FLOOR);
+					System.out.println("Demolishing BRICK WALL " + iCoordinate);
+					draw();
+				}
+				// rays can't get through this obstacle
+				break;
+			}
+			// adding ray at the icoordinate cell
+			bombFound.addToRays(iCoordinate);
+		}
+
+		for (int i = 1; i <= raysRange; i++) {
+			System.out.println("i = " + i);
+			// collecting coordinates for potential rays
+			// direction - up
+			iCoordinate = new Coordinates(bombFound.getCoordinates().getX(), bombFound.getCoordinates().getY() - i);
+
+			// printing for diagnostics
+			System.out.println("Horizontal coords are\n" + iCoordinate);
+			System.out.println(
+					"areCoordinatesInsideBoard(horizontalCoordinate) = " + areCoordinatesInsideBoard(iCoordinate));
+			System.out.println("isFreeToOccupy(horizontalCoordinate) = " + isFreeToOccupy(iCoordinate));
+			System.out.println("isExplosible(ihorizontalCoordinate) = " + isExplosible(iCoordinate));
+			System.out.println("isAnyPlayerHere(ihorizontalCoordinate) = " + isAnyPlayerHere(iCoordinate));
+
+			// killing players
+			if (isAnyPlayerHere(iCoordinate)) {
+				Player playerFound = playerByCoordinates(iCoordinate);
+				System.out.println("Player is here ! It's " + playerByCoordinates(iCoordinate));
+				if (playerFound != null) {
+					playerFound.kill();
+				}
+			}
+			// if the coordinate is out of the board, quit the cycle
+			if (!areCoordinatesInsideBoard(iCoordinate)) {
+				break;
+			}
+
+			// find out if this coordinate is busy with a solid tile
+			if (!isFreeToOccupy(iCoordinate)) {
+				// if this solid tile is destructible, demolish it
+				if (isDestructible(iCoordinate)) {
+					game.getBoard().setCell(iCoordinate.getX(), iCoordinate.getY(), TileType.FLOOR);
+					System.out.println("Demolishing BRICK WALL " + iCoordinate);
+					draw();
+				}
+				// rays can't get through this obstacle
+				break;
+			}
+			// adding ray at the icoordinate cell
+			bombFound.addToRays(iCoordinate);
+		}
+
+		for (int i = 1; i <= raysRange; i++) {
+			System.out.println("i = " + i);
+			// collecting coordinates for potential rays
+			// direction - down
+			iCoordinate = new Coordinates(bombFound.getCoordinates().getX(), bombFound.getCoordinates().getY() + i);
+
+			// printing for diagnostics
+			System.out.println("Horizontal coords are\n" + iCoordinate);
+			System.out.println(
+					"areCoordinatesInsideBoard(horizontalCoordinate) = " + areCoordinatesInsideBoard(iCoordinate));
+			System.out.println("isFreeToOccupy(horizontalCoordinate) = " + isFreeToOccupy(iCoordinate));
+			System.out.println("isExplosible(ihorizontalCoordinate) = " + isExplosible(iCoordinate));
+			System.out.println("isAnyPlayerHere(ihorizontalCoordinate) = " + isAnyPlayerHere(iCoordinate));
+
+			// killing players
+			if (isAnyPlayerHere(iCoordinate)) {
+				Player playerFound = playerByCoordinates(iCoordinate);
+				System.out.println("Player is here ! It's " + playerByCoordinates(iCoordinate));
+				if (playerFound != null) {
+					playerFound.kill();
+				}
+			}
+			// if the coordinate is out of the board, quit the cycle
+			if (!areCoordinatesInsideBoard(iCoordinate)) {
+				break;
+			}
+
+			// find out if this coordinate is busy with a solid tile
+			if (!isFreeToOccupy(iCoordinate)) {
+				// if this solid tile is destructible, demolish it
+				if (isDestructible(iCoordinate)) {
+					game.getBoard().setCell(iCoordinate.getX(), iCoordinate.getY(), TileType.FLOOR);
+					System.out.println("Demolishing BRICK WALL " + iCoordinate);
+					draw();
+				}
+				// rays can't get through this obstacle
+				break;
+			}
+			// adding ray at the icoordinate cell
+			bombFound.addToRays(iCoordinate);
+		}
+
+	
+//			iCoordinate = new Coordinates(bombFound.getCoordinates().getX(),
+//					bombFound.getCoordinates().getY() + i);
+//			System.out.println("Vertical coords are\n" + iCoordinate);
+//			System.out.println("areCoordinatesInsideBoard(verticalCoordinate) = "
+//					+ areCoordinatesInsideBoard(iCoordinate));
+//			System.out.println("isFreeToOccupy(verticalCoordinate) = " + isFreeToOccupy(iCoordinate));
+//			System.out.println("isExplosible(iverticalCoordinate) = " + isExplosible(iCoordinate));
+//			System.out.println("isFreeToOccupy(iverticalCoordinate) = " + isFreeToOccupy(iCoordinate));
+//			System.out.println("isAnyPlayerHere(iverticalCoordinate) = " + isAnyPlayerHere(iCoordinate));
+//			// killing players
+//			if (isAnyPlayerHere(iCoordinate)) {
+//				Player playerFound = playerByCoordinates(iCoordinate);
+//				System.out.println("Player is here ! It's " + playerByCoordinates(iCoordinate));
+//				if (playerFound != null) {
+//					playerFound.kill();
+//				}
+//			} else if (isAnyPlayerHere(iCoordinate)) {
+//				System.out.println("Player is here ! It's " + playerByCoordinates(iCoordinate));
+//				Player playerFound = playerByCoordinates(iCoordinate);
+//				if (playerFound != null) {
+//					playerFound.kill();
+//				}
+//			}
+//			
+//			if (areCoordinatesInsideBoard(iCoordinate) && isExplosible(iCoordinate) && i != 0) {
+//				bombFound.addToRaysHorizontal(iCoordinate);
+//				if (game.getBoard().getCell(iCoordinate.getY(),
+//						iCoordinate.getX()) == TileType.BRICK_WALL) {
+//					game.getBoard().setCell(iCoordinate.getX(), iCoordinate.getY(), TileType.FLOOR);
+//					System.out.println("Demolishing BRICK WALL " + iCoordinate);
+//					draw();
+//				}
+//				System.out.println("Horizontal rays coords are\n" + bombFound.getRaysHorizontal());
+//				System.out.println("Vertical rays coords are\n" + bombFound.getRaysVertical());
+//			}
+//			
+//			// adding vertical explosion rays
+//			if (areCoordinatesInsideBoard(iCoordinate) && isExplosible(iCoordinate) && i != 0) {
+//				bombFound.addToRaysVertical(iCoordinate);
+//				if (game.getBoard().getCell(iCoordinate.getY(),
+//						iCoordinate.getX()) == TileType.BRICK_WALL) {
+//					game.getBoard().setCell(iCoordinate.getY(), iCoordinate.getX(), TileType.FLOOR);
+//					System.out.println("Demolishing BRICK WALL " + iCoordinate);
+//					draw();
+//				}
+//				System.out.println("Horizontal rays coords are\n" + bombFound.getRaysHorizontal());
+//				System.out.println("Vertical rays coords are\n" + bombFound.getRaysVertical());
+//			}
+//		}
+//		System.out.println("Bomb coords are\n" + bombFound.getCoordinates());
+//		System.out.println("Horizontal rays coords are\n" + bombFound.getRaysHorizontal());
+//		System.out.println("Vertical rays coords are\n" + bombFound.getRaysVertical());
 
 		Platform.runLater(() -> {
-			gameView.blastBomb(bombFound, bombFound.getRaysVertical());
-			gameView.blastBomb(bombFound, bombFound.getRaysHorizontal());
+			gameView.blastBomb(bombFound, bombFound.getRays());
 		});
-		
+
 		// KILLING PLAYERS
-		
 
 		// !!!EXCLUDE RAYS THROUGH OBSTACLES!!! AND DESTROY WALLS!!!
 
@@ -418,26 +584,33 @@ public class GameController implements ControllerInterface {
 		return true;
 	}
 
-	// collision detection method
+	// collision detection method: if player can occupy this cell
 	public boolean isFreeToOccupy(Coordinates coordinates) {
 		if (!areCoordinatesInsideBoard(coordinates)) {
 			return false;
 		}
 		TileType tileToValidate = game.getBoard().getCells()[coordinates.getX()][coordinates.getY()];
-		if (!Arrays.asList(TILES_CAN_WALK_THROUGH).contains(tileToValidate)) {
+		if (Arrays.asList(TILES_CANT_WALK_THROUGH).contains(tileToValidate)) {
 			System.out.println("Obstacle = " + tileToValidate);
 			return false;
 		}
 		return true;
 	}
 
+	// identify if this cell is free for rays
 	public boolean isExplosible(Coordinates coordinates) {
-		if (!areCoordinatesInsideBoard(coordinates)) {
-			return false;
-		}
 		TileType tileToValidate = game.getBoard().getCells()[coordinates.getX()][coordinates.getY()];
 		if (!Arrays.asList(TILES_EXPLOSIBLE).contains(tileToValidate)) {
 			System.out.println("Not explosible = " + tileToValidate);
+			return false;
+		}
+		return true;
+	}
+
+	public boolean isDestructible(Coordinates coordinates) {
+		TileType tileToValidate = game.getBoard().getCells()[coordinates.getX()][coordinates.getY()];
+		if (!Arrays.asList(TILES_DESTRUCTABLE).contains(tileToValidate)) {
+			System.out.println("Not destructable = " + tileToValidate);
 			return false;
 		}
 		return true;
@@ -452,7 +625,17 @@ public class GameController implements ControllerInterface {
 		}
 		return false;
 	}
-	
+
+	public boolean isAnyBombHere(Coordinates coordinates) {
+		for (Bomb bomb : game.getBombs()) {
+			if (bomb.getCoordinates().getX() == coordinates.getX()
+					&& bomb.getCoordinates().getY() == coordinates.getY()) {
+				return true;
+			}
+		}
+		return false;
+	}
+
 	public Player playerByCoordinates(Coordinates coordinates) {
 		for (Player player : game.getPlayers()) {
 			if (player.getCoordinates().getX() == coordinates.getX()
@@ -461,6 +644,11 @@ public class GameController implements ControllerInterface {
 			}
 		}
 		return null;
+	}
+
+	@Override
+	public ArrayList<Player> getPlayers() {
+		return game.getPlayers();
 	}
 
 	/*
