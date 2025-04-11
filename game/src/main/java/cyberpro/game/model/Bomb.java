@@ -29,6 +29,7 @@ public class Bomb {
 
 	public Bomb(String playerId, Coordinates coordinates, boolean distantExplosion, Date explosionTime) {
 		this.id = "B" + ++counter;
+		this.playerId = playerId;
 		this.coordinates = coordinates;
 		this.distantExplosion = distantExplosion;
 		this.explosionTime = explosionTime;
@@ -41,30 +42,36 @@ public class Bomb {
 		return DEFAULT_RAYS_RANGE;
 	}
 
+	public static int getDefaultRaysDuration() {
+		return DEFAULT_RAYS_DURATION;
+	}
+
 	public ArrayList<Coordinates> getRaysVertical() {
 		return raysVertical;
 	}
 
 	public boolean addToRaysHorizontal(Coordinates coordinates) {
+		System.out.println("Adding horizontal coords " + coordinates);
 		for (Coordinates coords : raysHorizontal) {
 			if (coords.getX() == coordinates.getX() && coords.getY() == coordinates.getY()) {
-				return false; 
+				return false;
 			}
-			raysHorizontal.add(coordinates);
 		}
+		raysHorizontal.add(coordinates);
 		return true;
 	}
-	
+
 	public boolean addToRaysVertical(Coordinates coordinates) {
-		for (Coordinates coords : raysHorizontal) {
+		System.out.println("Adding vertical coords " + coordinates);
+		for (Coordinates coords : raysVertical) {
 			if (coords.getX() == coordinates.getX() && coords.getY() == coordinates.getY()) {
-				return false; 
+				return false;
 			}
-			raysVertical.add(coordinates);
 		}
+		raysVertical.add(coordinates);
 		return true;
 	}
-	
+
 	public ArrayList<Coordinates> getRaysHorizontal() {
 		return raysHorizontal;
 	}
@@ -95,8 +102,14 @@ public class Bomb {
 		SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 		String formattedDate = dateFormat.format(raysOffDate);
 		System.out.println("New time: " + formattedDate);
-		
+
 		System.out.println("The bomb id = " + id + " has exploded!");
+	}
+
+	@Override
+	public String toString() {
+		// TODO Auto-generated method stub
+		return "Bomb " + id + " with coords " + coordinates;
 	}
 
 }

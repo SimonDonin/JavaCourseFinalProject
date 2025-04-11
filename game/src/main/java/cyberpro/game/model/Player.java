@@ -71,6 +71,7 @@ public class Player {
 
 	public boolean isAlive() {
 		return isAlive;
+
 	}
 
 	public void setAlive(boolean status) {
@@ -81,6 +82,11 @@ public class Player {
 	public String toString() {
 		return "Player " + name + ":" + "\n\tcoordinates: [" + coordinates.getX() + ", " + coordinates.getY() + "]"
 				+ "\n\tspeed: " + speed + "\n\tcolor: " + color + "\n\t" + playerModifiers.toString() + "\n";
+	}
+
+	public void kill() {
+		System.out.println("Player " + id + " was killed by an aweful explosion!");
+		isAlive = false;
 	}
 
 }
