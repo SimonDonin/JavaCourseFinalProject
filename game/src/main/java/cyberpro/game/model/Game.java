@@ -31,7 +31,6 @@ public class Game {
 		this.name = name;
 		this.playersNumber = DEFAULT_PLAYERS_NUMBER;
 		this.board = board;
-		this.players = players;
 		bombs = new ArrayList<>();
 		modifiers = new ArrayList<>();
 		players = new ArrayList<>();
