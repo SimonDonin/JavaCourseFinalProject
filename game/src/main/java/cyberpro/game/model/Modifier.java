@@ -2,19 +2,17 @@ package cyberpro.game.model;
 
 import java.util.Date;
 
-enum Type {
-	SPEED_UP, PLUS_BOMB, PLUS_RANGE, REVERSE_CONTROLS, REMOTE_EXPLOSION
-};
+import cyberpro.game.controller.ModifierType;
 
 public class Modifier {
 	private int counter = 0;
 	private String id;
 	private Coordinates coordinates;
-	private Type type;
+	private ModifierType type;
 	private int duration;
 	private Date dateOff;
 
-	public Modifier(Coordinates coordinates, Type type, int duration) {
+	public Modifier(Coordinates coordinates, ModifierType type, int duration) {
 		this.id = "M" + ++counter;
 		this.coordinates = coordinates;
 		this.type = type;
@@ -23,6 +21,15 @@ public class Modifier {
 
 	public String getId() {
 		return id;
+	}
+
+	public Coordinates getCoordinates() {
+		return coordinates;
+	}
+
+	@Override
+	public String toString() {
+		return "Modifier " + id + " with type " + type + " with coords " + coordinates;
 	}
 
 }

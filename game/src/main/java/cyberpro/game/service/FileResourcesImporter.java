@@ -43,15 +43,15 @@ public class FileResourcesImporter {
 			for (int x = 0; x < cols; x++) {
 				char c = lines.get(y).charAt(x);
 				switch (c) {
-				case '#' -> board.setCell(y, x, TileType.CONCRETE_WALL);
-				case '$' -> board.setCell(y, x, TileType.BRICK_WALL);
+				case '#' -> board.setCell(x, y, TileType.CONCRETE_WALL);
+				case '$' -> board.setCell(x, y, TileType.BRICK_WALL);
 				case '@' -> {
-					board.setCell(y, x, TileType.FLOOR);
+					board.setCell(x, y, TileType.FLOOR);
 					// Set player coordinates
 					// playerX = x;
 					// playerY = y;
 				}
-				default -> board.setCell(y, x, TileType.FLOOR);
+				default -> board.setCell(x, y, TileType.FLOOR);
 				}
 			}
 		}
