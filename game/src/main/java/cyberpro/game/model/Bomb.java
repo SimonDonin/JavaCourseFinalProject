@@ -49,13 +49,13 @@ public class Bomb {
 	}
 
 	public boolean addToRays(Coordinates coordinates) {
-		System.out.println("Adding horizontal coords " + coordinates);
+		System.out.println("Adding rays coordinate " + coordinates);
 		for (Coordinates coords : rays) {
 			if (coords.getX() == coordinates.getX() && coords.getY() == coordinates.getY()) {
 				return false;
 			}
 		}
-		rays.add(coordinates);
+		rays.add(new Coordinates(coordinates.getX(), coordinates.getY()));
 		return true;
 	}
 
@@ -91,7 +91,6 @@ public class Bomb {
 
 	@Override
 	public String toString() {
-		// TODO Auto-generated method stub
 		return "Bomb " + id + " with coords " + coordinates;
 	}
 

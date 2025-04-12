@@ -33,6 +33,10 @@ public class Player {
 		return id;
 	}
 
+	public String getName() {
+		return name;
+	}
+
 	public int getSpeed() {
 		return speed;
 	}
@@ -61,12 +65,12 @@ public class Player {
 		return true;
 	}
 
-	public void addModifier(Modifier modificator) {
-		playerModifiers.add(modificator);
+	public void addModifier(Modifier modifier) {
+		playerModifiers.add(modifier);
 	}
 
-	public void removeModifier(Modifier modificator) {
-		playerModifiers.remove(modificator);
+	public void removeModifier(Modifier modifier) {
+		playerModifiers.remove(modifier);
 	}
 
 	public boolean isAlive() {
@@ -87,6 +91,17 @@ public class Player {
 	public void kill() {
 		System.out.println("Player " + id + " was killed by an aweful explosion!");
 		isAlive = false;
+	}
+	
+	public Modifier findModifierById(String Id) {
+		if (playerModifiers == null)
+			return null;
+		for (Modifier modifier : playerModifiers) {
+			if (modifier.getId().equalsIgnoreCase(Id)) {
+				return modifier;
+			}
+		}
+		return null;
 	}
 
 }

@@ -116,6 +116,7 @@ public class Game {
 			return false;
 		}
 		this.bombs.add(bomb);
+		System.out.println("Bomb " + bomb.getId() + " was added to the bombs list");
 		return true;
 	}
 
@@ -125,10 +126,38 @@ public class Game {
 			return false;
 		// search for a double and if it is found - return false
 		Bomb bombFound = findBombById(bomb.getId());
-		if (bombFound != null) {
+		if (bombFound == null) {
+			System.out.println("No such bomb in the bombs list!");
 			return false;
 		}
+		System.out.println("Bomb " + bomb.getId() + " was removed from the bombs list");
 		this.bombs.remove(bomb);
+		return true;
+	}
+	
+	public boolean addModifier(Modifier modifier) {
+		// search for a double and if it is found - return false
+		Modifier modifierFound = findModifierById(modifier.getId());
+		if (modifierFound != null) {
+			return false;
+		}
+		this.modifiers.add(modifier);
+		System.out.println("Modifier " + modifier.getId() + " was added to the modifiers list");
+		return true;
+	}
+	
+	public boolean removeModifier(Modifier modifier) {
+		// if there are no players
+		if (modifiers == null)
+			return false;
+		// if not found - nothing to remove
+		Modifier modifierFound = findModifierById(modifier.getId());
+		if (modifierFound == null) {
+			System.out.println("No such modifier in the modifiers list!");
+			return false;
+		}
+		System.out.println("Modifier " + modifier.getId() + " was removed from the modifiers list");
+		this.modifiers.remove(modifier);
 		return true;
 	}
 	

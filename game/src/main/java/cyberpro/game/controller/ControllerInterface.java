@@ -21,4 +21,6 @@ public interface ControllerInterface {
 	Board getBoard();
 	
 	ArrayList<Player> getPlayers();
+	
+	void draw();
 }
