@@ -54,8 +54,11 @@ public class GameView {
     private final Image floorImage = new Image(getClass().getResourceAsStream("Floor.png"));
     private final Image bombImage = new Image(getClass().getResourceAsStream("Bomb.png"));
     private final Image enemyImage = new Image(getClass().getResourceAsStream("Enemy.png"));
-    private final Image blastImage = new Image(getClass().getResourceAsStream("Blast.png"));
+    // private final Image blastImage = new Image(getClass().getResourceAsStream("Blast.png"));
     // End load sprites
+    // Begin load blast sprites
+    Image[][] blastImage = new Image[5][5];
+    
 
     // Begin declare map lists for player and bomb sprites
     private Map<String, ImageView> playerSprites = new HashMap<>();
@@ -162,7 +165,8 @@ public class GameView {
             playerView.setFitWidth(TILE_SIZE);
             playerView.setFitHeight(TILE_SIZE);
             playerSprites.put(playerID, playerView);
-            playerImage = new Image(getClass().getResourceAsStream("dead.png"));
+            sprite = "dead" + counter + ".png";
+            playerImage = new Image(getClass().getResourceAsStream(sprite));
             deadPlayerView = new ImageView(playerImage);
             deadPlayerView.setFitWidth(TILE_SIZE);
             deadPlayerView.setFitHeight(TILE_SIZE);
@@ -171,6 +175,18 @@ public class GameView {
             counter++;
         }
         // All player's sprites are in playerSprites list
+        
+        // Create blast sprites
+        blastImage[0][2] = new Image(getClass().getResourceAsStream("blast/blast0,2.png"));
+        blastImage[1][2] = new Image(getClass().getResourceAsStream("blast/blast1,2.png"));
+        blastImage[2][2] = new Image(getClass().getResourceAsStream("blast/blast2,2.png"));
+        blastImage[3][2] = new Image(getClass().getResourceAsStream("blast/blast3,2.png"));
+        blastImage[4][2] = new Image(getClass().getResourceAsStream("blast/blast4,2.png"));
+        blastImage[2][0] = new Image(getClass().getResourceAsStream("blast/blast2,0.png"));
+        blastImage[2][1] = new Image(getClass().getResourceAsStream("blast/blast2,1.png"));
+        blastImage[2][3] = new Image(getClass().getResourceAsStream("blast/blast2,3.png"));
+        blastImage[2][4] = new Image(getClass().getResourceAsStream("blast/blast2,4.png"));
+        
     }
 
     public void getBoard(TileType[][] board) {
@@ -276,12 +292,28 @@ public class GameView {
         grid.getChildren().remove(bombView);
         bombSprites.remove(bomb.getId());
         // Find a specific bomb, remove it from the screen and from the list
-        ImageView blastView = new ImageView(blastImage);
+        ImageView blastView = new ImageView(blastImage[2][2]);
         blastView.setFitWidth(TILE_SIZE);
         blastView.setFitHeight(TILE_SIZE);
-        grid.add(new ImageView(blastImage), bomb.getCoordinates().getX(), bomb.getCoordinates().getY());
+        grid.getChildren().removeIf(node ->
+                GridPane.getColumnIndex(node) != null && GridPane.getRowIndex(node) != null &&
+                GridPane.getColumnIndex(node) == bomb.getCoordinates().getX() &&
+                GridPane.getRowIndex(node) == bomb.getCoordinates().getY()
+            );
+        grid.add(blastView, bomb.getCoordinates().getX(), bomb.getCoordinates().getY());
         for (Coordinates blast : blastWave) {
-            grid.add(new ImageView(blastImage), blast.getX(), blast.getY());
+            grid.getChildren().removeIf(node ->
+                GridPane.getColumnIndex(node) != null && GridPane.getRowIndex(node) != null &&
+                GridPane.getColumnIndex(node) == blast.getX() &&
+                GridPane.getRowIndex(node) == blast.getY()
+            );
+            int blastX = blast.getX()-bomb.getCoordinates().getX()+2;
+            int blastY = blast.getY()-bomb.getCoordinates().getY()+2;
+            System.out.println(blastX +", " + blastY);
+            blastView = new ImageView(blastImage[blastX][blastY]);
+            blastView.setFitWidth(TILE_SIZE);
+            blastView.setFitHeight(TILE_SIZE);
+            grid.add(blastView, blast.getX(), blast.getY());
         }
 
     }
