@@ -26,6 +26,7 @@ import javafx.util.Duration;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import javafx.animation.AnimationTimer;
 
@@ -45,6 +46,8 @@ public class GameView {
     // control methods
     private TileType[][] gameBoard;
     // Game board array. We have to recive it from a Controller
+    
+    // Begin load sprites
     private final Image playerOneImage = new Image(getClass().getResourceAsStream("Character1.png"));
     private final Image brickWallImage = new Image(getClass().getResourceAsStream("BrickWall.png"));
     private final Image concreteWallImage = new Image(getClass().getResourceAsStream("ConcreteWall.png"));
@@ -52,10 +55,15 @@ public class GameView {
     private final Image bombImage = new Image(getClass().getResourceAsStream("Bomb.png"));
     private final Image enemyImage = new Image(getClass().getResourceAsStream("Enemy.png"));
     private final Image blastImage = new Image(getClass().getResourceAsStream("Blast.png"));
+    // End load sprites
 
-    private final Map<String, ImageView> playerSprites = new HashMap<>();
+    // Begin declare map lists for player and bomb sprites
+    private Map<String, ImageView> playerSprites = new HashMap<>();
     private Map<String, ImageView> bombSprites = new HashMap<>();
-    // Keep all bomb sprites in a one HashMap for future use
+    private Map<String, ImageView> deadPlayerSprites = new HashMap<>();
+    // End declare map lists for player and bomb sprites
+    
+    private Map<String, Boolean> playerOnMove = new HashMap<>();
 
     private final Set<KeyCode> pressedKeys = new HashSet<>();
 
@@ -79,6 +87,7 @@ public class GameView {
         grid.setVgap(0); // Без промежутков между строками
 
         gridWidth = gridHeight = controller.getBoard().getSize();
+        ArrayList<Player> players;
 
         int sceneSize = TILE_SIZE * gridWidth; // или gridHeight, если нужна квадратная область
         Scene scene = new Scene(grid, sceneSize, sceneSize);
@@ -90,31 +99,34 @@ public class GameView {
             @Override
             public void handle(long now) {
                 if (now - lastUpdate >= MOVEMENT_DELAY) {
-                    if (pressedKeys.contains(KeyCode.UP)) {
+                    if ( (pressedKeys.contains(KeyCode.UP) ) && (Objects.equals(playerOnMove.get(controller.getPlayerIdByNumber(1)), Boolean.FALSE))) {
                         controller.playerMoveUp(controller.getPlayerIdByNumber(1));
                     }
-                    if (pressedKeys.contains(KeyCode.DOWN)) {
+                    if ( (pressedKeys.contains(KeyCode.DOWN) ) && (Objects.equals(playerOnMove.get(controller.getPlayerIdByNumber(1)), Boolean.FALSE)))  {
                         controller.playerMoveDown(controller.getPlayerIdByNumber(1));
                     }
-                    if (pressedKeys.contains(KeyCode.LEFT)) {
+                    if ( (pressedKeys.contains(KeyCode.LEFT) ) && (Objects.equals(playerOnMove.get(controller.getPlayerIdByNumber(1)), Boolean.FALSE))) {
                         controller.playerMoveLeft(controller.getPlayerIdByNumber(1));
                     }
-                    if (pressedKeys.contains(KeyCode.RIGHT)) {
+                    if ( ( pressedKeys.contains(KeyCode.RIGHT) ) && (Objects.equals(playerOnMove.get(controller.getPlayerIdByNumber(1)), Boolean.FALSE))) {
                         controller.playerMoveRight(controller.getPlayerIdByNumber(1));
                     }
-                    if (pressedKeys.contains(KeyCode.W)) {
+                    if ( ( pressedKeys.contains(KeyCode.SPACE) ) && (Objects.equals(playerOnMove.get(controller.getPlayerIdByNumber(1)), Boolean.FALSE))) {
+                        controller.playerPlantBomb(controller.getPlayerIdByNumber(1));
+                    }
+                    if ( (pressedKeys.contains(KeyCode.W) ) &&  (Objects.equals(playerOnMove.get(controller.getPlayerIdByNumber(2)), Boolean.FALSE))) {
                         controller.playerMoveUp(controller.getPlayerIdByNumber(2));
                     }
-                    if (pressedKeys.contains(KeyCode.S)) {
+                    if ( (pressedKeys.contains(KeyCode.S) ) &&  (Objects.equals(playerOnMove.get(controller.getPlayerIdByNumber(2)), Boolean.FALSE))) {
                         controller.playerMoveDown(controller.getPlayerIdByNumber(2));
                     }
-                    if (pressedKeys.contains(KeyCode.A)) {
+                    if ( (pressedKeys.contains(KeyCode.A) ) && (Objects.equals(playerOnMove.get(controller.getPlayerIdByNumber(2)), Boolean.FALSE))) {
                         controller.playerMoveLeft(controller.getPlayerIdByNumber(2));
                     }
-                    if (pressedKeys.contains(KeyCode.D)) {
+                    if ( (pressedKeys.contains(KeyCode.D) ) && (Objects.equals(playerOnMove.get(controller.getPlayerIdByNumber(2)), Boolean.FALSE))) {
                         controller.playerMoveRight(controller.getPlayerIdByNumber(2));
                     }
-                    if (pressedKeys.contains(KeyCode.G)) {
+                    if (( pressedKeys.contains(KeyCode.G) ) &&  (Objects.equals(playerOnMove.get(controller.getPlayerIdByNumber(2)), Boolean.FALSE))) {
                         controller.playerPlantBomb(controller.getPlayerIdByNumber(2));
                     }
                     // Update the last update time
@@ -134,6 +146,31 @@ public class GameView {
         });
 
         grid.requestFocus(); // Запрашиваем фокус
+        
+        // Create a specific sprite for each player
+        players = controller.getPlayers();
+        int counter = 1;
+        Image playerImage;
+        ImageView playerView;
+        ImageView deadPlayerView;
+        for (Player player : players) {
+            String playerID = player.getId();
+            String sprite = "character" + counter + ".png";
+            System.out.println(sprite);
+            playerImage = new Image(getClass().getResourceAsStream(sprite));
+            playerView = new ImageView(playerImage);
+            playerView.setFitWidth(TILE_SIZE);
+            playerView.setFitHeight(TILE_SIZE);
+            playerSprites.put(playerID, playerView);
+            playerImage = new Image(getClass().getResourceAsStream("dead.png"));
+            deadPlayerView = new ImageView(playerImage);
+            deadPlayerView.setFitWidth(TILE_SIZE);
+            deadPlayerView.setFitHeight(TILE_SIZE);
+            deadPlayerSprites.put(playerID, deadPlayerView);
+            playerOnMove.put(controller.getPlayerIdByNumber(counter), Boolean.FALSE);
+            counter++;
+        }
+        // All player's sprites are in playerSprites list
     }
 
     public void getBoard(TileType[][] board) {
@@ -158,18 +195,16 @@ public class GameView {
                 grid.add(tileView, row, col);
             }
         }
-
+        
+        // Begin put players on the grid
         for (Player player : players) {
             String playerID = player.getId();
-            ImageView playerView = new ImageView(playerOneImage);
-            playerView.setFitWidth(TILE_SIZE);
-            playerView.setFitHeight(TILE_SIZE);
-            playerSprites.put(playerID, playerView);
+            ImageView playerView = playerSprites.get(playerID);
             grid.add(playerView, player.getCoordinates().getX(), player.getCoordinates().getY());
         }
-        // All players are on map
+        // End. All players are on map
 
-        // Place bombs
+        // Begin put bombs on the grid
         for (Bomb bomb : bombs) {
             ImageView bombView = new ImageView(bombImage);
             bombView.setFitWidth(TILE_SIZE);
@@ -180,31 +215,7 @@ public class GameView {
 
     }
 
-    /*
-	 * private void handleKeyPress(KeyEvent event) { /* if (event.getCode() ==
-	 * KeyCode.UP) controller.playerMoveUp(controller.getPlayerIdByNumber(1)); if
-	 * (event.getCode() == KeyCode.DOWN)
-	 * controller.playerMoveDown(controller.getPlayerIdByNumber(1)); if
-	 * (event.getCode() == KeyCode.LEFT)
-	 * controller.playerMoveLeft(controller.getPlayerIdByNumber(1)); if
-	 * (event.getCode() == KeyCode.RIGHT)
-	 * controller.playerMoveRight(controller.getPlayerIdByNumber(1));
-	 * 
-	 * if (event.getCode() == KeyCode.W)
-	 * controller.playerMoveUp(controller.getPlayerIdByNumber(2)); if
-	 * (event.getCode() == KeyCode.S)
-	 * controller.playerMoveDown(controller.getPlayerIdByNumber(2)); if
-	 * (event.getCode() == KeyCode.A)
-	 * controller.playerMoveLeft(controller.getPlayerIdByNumber(2)); if
-	 * (event.getCode() == KeyCode.D)
-	 * controller.playerMoveRight(controller.getPlayerIdByNumber(2));
-	 * 
-	 * 
-	 * }
-	 * 
-	 * if (playerNumber != 0) { System.out.println("Key pressed " + "by the Player "
-	 * + controller.getPlayerIdByNumber(playerNumber) + " " + event.getCode()); } }
-     */
+
     public void moveSprite(Coordinates oldCoord, Coordinates newCoord, Player player) {
         ImageView playerView = playerSprites.get(player.getId());
         if (playerView == null) {
@@ -222,7 +233,7 @@ public class GameView {
             System.err.printf("Unexpected move: from (%d, %d) to (%d, %d)%n", oldX, oldY, newX, newY);
             return;
         }
-
+        playerOnMove.replace(player.getId(), Boolean.TRUE);
         // Movement log for debug
         // System.out.printf("Moving player %s from (%d, %d) to (%d, %d)%n", player.getId(), oldX, oldY, newX, newY);
 
@@ -239,6 +250,7 @@ public class GameView {
             grid.getChildren().remove(playerView); // More safe than just add new
             grid.add(playerView, newX, newY);
             // Actually set player at new position
+            playerOnMove.replace(player.getId(), Boolean.FALSE);
         });
         transition.play();
     }
@@ -280,5 +292,13 @@ public class GameView {
 
     private void handleKeyRelease(KeyEvent event) {
         pressedKeys.remove(event.getCode());
+    }
+    
+    public void killPlayer(Player player) {
+        ImageView playerView = playerSprites.get(player.getId());
+        grid.getChildren().remove(playerView);
+        // Remove player sprite from grig
+        ImageView deadPlayerView = deadPlayerSprites.get(player.getId());
+        grid.add(deadPlayerView, player.getCoordinates().getX(), player.getCoordinates().getY());
     }
 }
