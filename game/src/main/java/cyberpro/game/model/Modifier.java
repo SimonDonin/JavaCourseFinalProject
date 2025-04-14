@@ -26,6 +26,10 @@ public class Modifier {
 	public Coordinates getCoordinates() {
 		return coordinates;
 	}
+        
+        public ModifierType getType() {
+            return type;
+        }
 
 	@Override
 	public String toString() {
