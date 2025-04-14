@@ -19,19 +19,20 @@ public class Game {
 	private Board board;
 	private ArrayList<Player> players;
 	private ArrayList<Bomb> bombs;
+	private ArrayList<Bomb> bombsExploded;
 	private ArrayList<Modifier> modifiers;
 
-	
-	  //public Game(String name, int playersNumber) { this.name = name;
-	  //this.playersNumber = playersNumber; board = new Board(); players = new
-	  //ArrayList<>(); bombs = new ArrayList<>(); modifiers = new ArrayList<>();
-	  //}
+	// public Game(String name, int playersNumber) { this.name = name;
+	// this.playersNumber = playersNumber; board = new Board(); players = new
+	// ArrayList<>(); bombs = new ArrayList<>(); modifiers = new ArrayList<>();
+	// }
 
 	public Game(String name, Board board) {
 		this.name = name;
 		this.playersNumber = DEFAULT_PLAYERS_NUMBER;
 		this.board = board;
 		bombs = new ArrayList<>();
+		bombsExploded = new ArrayList<>();
 		modifiers = new ArrayList<>();
 		players = new ArrayList<>();
 
@@ -43,6 +44,10 @@ public class Game {
 
 	public ArrayList<Bomb> getBombs() {
 		return bombs;
+	}
+
+	public ArrayList<Bomb> getBombsExploded() {
+		return bombsExploded;
 	}
 
 	public ArrayList<Modifier> getModifiers() {
@@ -121,10 +126,10 @@ public class Game {
 	}
 
 	public boolean removeBomb(Bomb bomb) {
-		// if there are no players
+		// if there are no bombs
 		if (bombs == null)
 			return false;
-		// search for a double and if it is found - return false
+		// if the bomb is not found in the bombs list - return false
 		Bomb bombFound = findBombById(bomb.getId());
 		if (bombFound == null) {
 			System.out.println("No such bomb in the bombs list!");
@@ -134,7 +139,7 @@ public class Game {
 		this.bombs.remove(bomb);
 		return true;
 	}
-	
+
 	public boolean addModifier(Modifier modifier) {
 		// search for a double and if it is found - return false
 		Modifier modifierFound = findModifierById(modifier.getId());
@@ -145,7 +150,7 @@ public class Game {
 		System.out.println("Modifier " + modifier.getId() + " was added to the modifiers list");
 		return true;
 	}
-	
+
 	public boolean removeModifier(Modifier modifier) {
 		// if there are no players
 		if (modifiers == null)
@@ -160,7 +165,7 @@ public class Game {
 		this.modifiers.remove(modifier);
 		return true;
 	}
-	
+
 	@Override
 	public String toString() {
 		// TODO Auto-generated method stub
@@ -169,8 +174,42 @@ public class Game {
 				+ bombs.toString() + "\nMODIFIERS" + "\n" + modifiers.toString();
 	}
 
-	/*
-	 * plantBomb findBombById findModifierById
-	 */
+	public boolean assignExploded(Bomb bomb) {
+		if (!removeBomb(bomb))
+			return false;
+		if (findExplodedBombById(bomb.getId()) != null) {
+			return false;
+		}
+		System.out.println("Bomb " + bomb.getId() + " was transfered to the exploded bombs list");
+		this.bombsExploded.add(bomb);
+		return true;
+	}
+	
+	public Bomb findExplodedBombById(String Id) {
+		if (bombsExploded == null)
+			return null;
+		for (Bomb bomb : bombsExploded) {
+			if (bomb.getId().equalsIgnoreCase(Id)) {
+				return bomb;
+			}
+		}
+		return null;
+	}
+
+	public boolean fullRemove(Bomb bomb) {
+		// if there are no bombs
+		if (bombsExploded == null)
+			return false;
+		// if the bomb is not found in the bombs list - return false
+		Bomb bombFound = findExplodedBombById(bomb.getId());
+		if (bombFound == null) {
+			System.out.println("No such bomb in the exploded bombs list!");
+			return false;
+		}
+		System.out.println("Bomb " + bomb.getId() + " was removed from the exploded bombs list");
+		this.bombsExploded.remove(bomb);
+		return true;
+		
+	}
 
 }

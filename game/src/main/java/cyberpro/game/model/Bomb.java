@@ -44,6 +44,10 @@ public class Bomb {
 		return DEFAULT_RAYS_DURATION;
 	}
 
+	public Date getRaysOffDate() {
+		return raysOffDate;
+	}
+
 	public ArrayList<Coordinates> getRays() {
 		return rays;
 	}
@@ -59,7 +63,7 @@ public class Bomb {
 		return true;
 	}
 
-		public String getId() {
+	public String getId() {
 		return id;
 	}
 
