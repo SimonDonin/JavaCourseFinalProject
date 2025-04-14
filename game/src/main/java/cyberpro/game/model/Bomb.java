@@ -48,6 +48,10 @@ public class Bomb {
 		return raysOffDate;
 	}
 
+	public String getPlayerId() {
+		return playerId;
+	}
+
 	public ArrayList<Coordinates> getRays() {
 		return rays;
 	}

@@ -29,6 +29,7 @@ public class GameController implements ControllerInterface {
 	private static final TileType[] TILES_CANT_WALK_THROUGH = { TileType.CONCRETE_WALL, TileType.BRICK_WALL };
 	private static final TileType[] TILES_EXPLOSIBLE = { TileType.FLOOR, TileType.EXPLOSION, TileType.BRICK_WALL };
 	private static final TileType[] TILES_DESTRUCTIBLE = { TileType.BRICK_WALL };
+	private static final int DEFAULT_MAX_BOMBS_ACTIVE = 1;
 
 	private ScheduledExecutorService schedulerForExplosion = Executors.newScheduledThreadPool(10);
 	private ScheduledExecutorService schedulerForRaysOff = Executors.newScheduledThreadPool(10);
@@ -100,8 +101,10 @@ public class GameController implements ControllerInterface {
 	// processes a command from a Player
 	private boolean processCommand(String command, Game game) {
 		Player playerFound = game.findPlayerById(command.substring(1));
-		if (playerFound == null) return false;
-		if (!playerFound.isAlive()) return false;
+		if (playerFound == null)
+			return false;
+		if (!playerFound.isAlive())
+			return false;
 		switch (command.charAt(0)) {
 		case 'U' -> moveInDirection(command.substring(1), "up");
 		case 'D' -> moveInDirection(command.substring(1), "down");
@@ -177,12 +180,12 @@ public class GameController implements ControllerInterface {
 		Platform.runLater(() -> {
 			// updating the player's sprite in the view
 			gameView.moveSprite(oldCoordinates, newCoordinates, playerFound);
-			System.out.println("raysBombByCoordinates =" + raysBombByCoordinates(newCoordinates));
+			//System.out.println("raysBombByCoordinates =" + raysBombByCoordinates(newCoordinates));
 			// if player moves to the active rays he dies
-			if (raysBombByCoordinates(newCoordinates)) {
-				killPlayer(playerFound);
-			}
 		});
+		if (raysBombByCoordinates(newCoordinates)) {
+			killPlayer(playerFound);
+		}
 
 		// actually move the player
 		switch (direction) {
@@ -255,6 +258,34 @@ public class GameController implements ControllerInterface {
 		return game.getPlayers().get(playerNumber - 1).getId();
 	}
 
+	// returns current number of bombs planted but not exploded for a player
+	public int countBombsActive(String playerId) {
+		Player playerFound = game.findPlayerById(playerId);
+		// validation if a player isn't found by Id
+		if (playerFound == null)
+			return -1;
+		int count = 0;
+		for (Bomb bomb : game.getBombs()) {
+			if (bomb.getPlayerId().equalsIgnoreCase(playerId)) {
+				count++;
+			}
+		}
+		return count;
+	}
+
+	// returns number of bombs allowed to have at the same time for a player
+	public int countBombsAllowed(String playerId) {
+		Player playerFound = game.findPlayerById(playerId);
+		// validation if a player isn't found by Id
+		if (playerFound == null)
+			return -1;
+		int countPlusBombs = playerFound.countModifiersByType(ModifierType.PLUS_BOMB);
+		if (countPlusBombs == -1) {
+			return -1;
+		}
+		return DEFAULT_MAX_BOMBS_ACTIVE + countPlusBombs;
+	}
+
 	public void plantBomb(String playerId) {
 		// validation if players list is empty
 		if (game.getPlayers().isEmpty()) {
@@ -265,7 +296,11 @@ public class GameController implements ControllerInterface {
 		// validation if a player isn't found by Id
 		if (playerFound == null)
 			return;
-
+		if (countBombsActive(playerId) >= countBombsAllowed(playerId)) {
+			System.out.println("Player " + playerId + " can't plant more bombs: current active bombs number = "
+		+ countBombsActive(playerId) + " and allowed = " + countBombsAllowed(playerId));
+			return;
+		}
 		// calculation of a blast time
 		Date now = new Date();
 		Calendar calendar = Calendar.getInstance();
@@ -319,7 +354,10 @@ public class GameController implements ControllerInterface {
 
 		// calculating time for rays to disappear and Setting up a timer to do it
 		// eliminating the bomb from the exploded bombs list
-		schedulerForRaysOff.schedule(() -> {draw(); game.fullRemove(bombFound);}, Bomb.getDefaultRaysDuration(), TimeUnit.SECONDS);
+		schedulerForRaysOff.schedule(() -> {
+			draw();
+			game.fullRemove(bombFound);
+		}, Bomb.getDefaultRaysDuration(), TimeUnit.SECONDS);
 
 	}
 
@@ -395,10 +433,11 @@ public class GameController implements ControllerInterface {
 					// adding rays at the cell being destroyed
 					bombFound.addToRays(iCoordinate);
 
-					// uncovering a modifyer under the destroyed brick wall
+					// uncovering a modifier under the destroyed brick wall
 					Modifier newModifier = new Modifier(iCoordinate, uncoverModifier(iCoordinate), 30);
 					game.addModifier(newModifier);
 					System.out.println("The modifiers list now is " + game.getModifiers());
+					Platform.runLater(() -> gameView.plantMod(newModifier));
 				}
 				// rays can't get through this obstacle
 				break;
@@ -500,7 +539,12 @@ public class GameController implements ControllerInterface {
 		}
 		return null;
 	}
+
 	public boolean killPlayer(Player player) {
+		// can't kill twice
+		if (!player.isAlive()) {
+			return false;
+		}
 		// find a player by Id
 		Player playerFound = game.findPlayerById(player.getId());
 		if (playerFound == null)
@@ -508,11 +552,12 @@ public class GameController implements ControllerInterface {
 		playerFound.kill();
 		// killing the player in the view
 		Platform.runLater(() -> {
+			System.err.println("Sending requiest to gameView to kill the player");
 			gameView.killPlayer(playerFound);
-	});
+		});
 		return true;
 	}
-	
+
 	// returns the bomb that has its rays at the coordinates specified
 	public boolean raysBombByCoordinates(Coordinates coordinates) {
 		for (Bomb bomb : game.getBombsExploded()) {
