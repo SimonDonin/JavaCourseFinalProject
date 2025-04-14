@@ -98,7 +98,10 @@ public class GameController implements ControllerInterface {
 	}
 
 	// processes a command from a Player
-	private void processCommand(String command, Game game) {
+	private boolean processCommand(String command, Game game) {
+		Player playerFound = game.findPlayerById(command.substring(1));
+		if (playerFound == null) return false;
+		if (!playerFound.isAlive()) return false;
 		switch (command.charAt(0)) {
 		case 'U' -> moveInDirection(command.substring(1), "up");
 		case 'D' -> moveInDirection(command.substring(1), "down");
@@ -110,7 +113,7 @@ public class GameController implements ControllerInterface {
 		}
 		default -> System.out.println("Unknown command");
 		}
-
+		return true;
 	}
 
 	// movement in the direction specified
@@ -120,13 +123,13 @@ public class GameController implements ControllerInterface {
 
 		if (playerFound == null)
 			return false;
-		
+
 		int currentX = playerFound.getCoordinates().getX();
 		int currentY = playerFound.getCoordinates().getY();
 
 		int newX = 0;
 		int newY = 0;
-		
+
 		// calculating a new coordinate
 		switch (direction) {
 		case "right" -> {
@@ -170,10 +173,15 @@ public class GameController implements ControllerInterface {
 		if (modifierFound != null) {
 			takeModifier(playerFound, modifierFound);
 		}
-		
-		// updating the player's sprite in the view
+
 		Platform.runLater(() -> {
+			// updating the player's sprite in the view
 			gameView.moveSprite(oldCoordinates, newCoordinates, playerFound);
+			System.out.println("raysBombByCoordinates =" + raysBombByCoordinates(newCoordinates));
+			// if player moves to the active rays he dies
+			if (raysBombByCoordinates(newCoordinates)) {
+				killPlayer(playerFound);
+			}
 		});
 
 		// actually move the player
@@ -195,7 +203,7 @@ public class GameController implements ControllerInterface {
 			break;
 		}
 		}
-		
+
 		return true;
 	}
 
@@ -301,14 +309,17 @@ public class GameController implements ControllerInterface {
 		System.out.println("Rays array is " + bombFound.getRays());
 
 		Platform.runLater(() -> {
+			// draw explosion in the view
 			gameView.blastBomb(bombFound, bombFound.getRays());
+			// transfer the bomb from the bombs list to the exploded bombs list
+			game.assignExploded(bombFound);
 		});
 		System.out.println("Bombs array before removal = " + game.getBombs());
-		game.removeBomb(bombFound);
 		System.out.println("Bombs array after removal = " + game.getBombs());
 
 		// calculating time for rays to disappear and Setting up a timer to do it
-		schedulerForRaysOff.schedule(() -> draw(), Bomb.getDefaultRaysDuration(), TimeUnit.SECONDS);
+		// eliminating the bomb from the exploded bombs list
+		schedulerForRaysOff.schedule(() -> {draw(); game.fullRemove(bombFound);}, Bomb.getDefaultRaysDuration(), TimeUnit.SECONDS);
 
 	}
 
@@ -362,7 +373,7 @@ public class GameController implements ControllerInterface {
 				Player playerFound = playerByCoordinates(iCoordinate);
 				System.out.println("Player is here ! It's " + playerFound.getName());
 				if (playerFound != null) {
-					playerFound.kill();
+					killPlayer(playerFound);
 				}
 			}
 
@@ -397,8 +408,9 @@ public class GameController implements ControllerInterface {
 
 			// exploding a bomb which is on the rays way
 			Bomb bombToExplode = bombByCoordinates(iCoordinate);
-			if (bombToExplode != null) {
+			if (bombToExplode != null && bombToExplode.getRaysOffDate() == null) {
 				// running a thread for exploding another bomb
+				System.err.println("Bomb " + bombFound.getId() + " detonated bomb " + bombToExplode.getId());
 				new Thread(() -> {
 					explodeBomb(bombToExplode.getId());
 				}).start();
@@ -488,7 +500,34 @@ public class GameController implements ControllerInterface {
 		}
 		return null;
 	}
+	public boolean killPlayer(Player player) {
+		// find a player by Id
+		Player playerFound = game.findPlayerById(player.getId());
+		if (playerFound == null)
+			return false;
+		playerFound.kill();
+		// killing the player in the view
+		Platform.runLater(() -> {
+			gameView.killPlayer(playerFound);
+	});
+		return true;
+	}
 	
+	// returns the bomb that has its rays at the coordinates specified
+	public boolean raysBombByCoordinates(Coordinates coordinates) {
+		for (Bomb bomb : game.getBombsExploded()) {
+			System.out.println(bomb.getRays());
+			for (Coordinates raysCoords : bomb.getRays()) {
+				System.out.println(raysCoords);
+				System.out.println(coordinates);
+				if (raysCoords.getX() == coordinates.getX() && raysCoords.getY() == coordinates.getY()) {
+					return true;
+				}
+			}
+		}
+		return false;
+	}
+
 	public Modifier modifierByCoordinates(Coordinates coordinates) {
 		for (Modifier modifier : game.getModifiers()) {
 			if (modifier.getCoordinates().getX() == coordinates.getX()
@@ -517,9 +556,17 @@ public class GameController implements ControllerInterface {
 		}
 		player.addModifier(modifier);
 		System.out.println("Player " + player.getName() + " got the modifier " + modifier);
-		
+
 		game.removeModifier(modifier);
 		return true;
 	}
 
+	private void printRays() {
+		for (Bomb bomb : game.getBombs()) {
+			for (Coordinates raysCoords : bomb.getRays()) {
+				System.out.println(raysCoords);
+
+			}
+		}
+	}
 }

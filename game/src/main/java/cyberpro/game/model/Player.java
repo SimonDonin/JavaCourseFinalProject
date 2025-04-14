@@ -27,6 +27,7 @@ public class Player {
 		this.speed = 1;
 		this.color = Colors.GREEN;
 		this.playerModifiers = new ArrayList<>();
+		this.isAlive = true;
 	}
 
 	public String getId() {
@@ -88,9 +89,11 @@ public class Player {
 				+ "\n\tspeed: " + speed + "\n\tcolor: " + color + "\n\t" + playerModifiers.toString() + "\n";
 	}
 
-	public void kill() {
-		System.out.println("Player " + id + " was killed by an aweful explosion!");
-		isAlive = false;
+	public boolean kill() {
+		if (!isAlive()) return false;
+		System.err.println("Player " + id + " was killed by an aweful explosion!");
+		setAlive(false);
+		return true;
 	}
 	
 	public Modifier findModifierById(String Id) {

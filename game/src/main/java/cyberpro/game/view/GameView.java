@@ -309,7 +309,7 @@ public class GameView {
             );
             int blastX = blast.getX()-bomb.getCoordinates().getX()+2;
             int blastY = blast.getY()-bomb.getCoordinates().getY()+2;
-            System.out.println(blastX +", " + blastY);
+            //System.out.println(blastX +", " + blastY);
             blastView = new ImageView(blastImage[blastX][blastY]);
             blastView.setFitWidth(TILE_SIZE);
             blastView.setFitHeight(TILE_SIZE);
