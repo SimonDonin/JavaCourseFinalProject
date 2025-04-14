@@ -3,6 +3,8 @@ package cyberpro.game.model;
 import java.util.ArrayList;
 import java.util.Set;
 
+import cyberpro.game.controller.ModifierType;
+
 enum Colors {
 	YELLOW, GREEN, PURPLE
 };
@@ -105,6 +107,29 @@ public class Player {
 			}
 		}
 		return null;
+	}
+	
+	public Modifier findModifierByType(ModifierType modifierType) {
+		if (playerModifiers == null)
+			return null;
+		for (Modifier modifier : playerModifiers) {
+			if (modifier.getType() == modifierType) {
+				return modifier;
+			}
+		}
+		return null;
+	}
+	
+	public int countModifiersByType(ModifierType modifierType) {
+		if (playerModifiers == null)
+			return -1;
+		int count = 0;
+		for (Modifier modifier : playerModifiers) {
+			if (modifier.getType() == modifierType) {
+				count++;
+			}
+		}
+		return count;
 	}
 
 }
