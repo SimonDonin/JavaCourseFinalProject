@@ -14,10 +14,6 @@ import javafx.scene.Scene;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.GridPane;
 import javafx.scene.input.KeyCode;
-import cyberpro.game.controller.ControllerInterface;
-import cyberpro.game.controller.GameController;
-import cyberpro.game.model.*;
-import cyberpro.game.view.GameView;
 import javafx.stage.Stage;
 // Animation libs
 import javafx.animation.TranslateTransition;
@@ -29,6 +25,13 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import javafx.animation.AnimationTimer;
+
+// Package import
+import cyberpro.game.controller.ControllerInterface;
+import cyberpro.game.controller.GameController;
+import cyberpro.game.model.*;
+import cyberpro.game.view.GameView;
+import cyberpro.game.controller.ModifierType;
 
 /**
  *
@@ -54,7 +57,10 @@ public class GameView {
     private final Image floorImage = new Image(getClass().getResourceAsStream("Floor.png"));
     private final Image bombImage = new Image(getClass().getResourceAsStream("Bomb.png"));
     private final Image enemyImage = new Image(getClass().getResourceAsStream("Enemy.png"));
-    // private final Image blastImage = new Image(getClass().getResourceAsStream("Blast.png"));
+    // Modifier sprites
+    private final Image modRemoteExplosion = new Image(getClass().getResourceAsStream("modRemoteExplosion.png"));
+    private final Image modPlusBomb = new Image(getClass().getResourceAsStream("modPlusBomb.png"));
+    private final Image modSpeedUp = new Image(getClass().getResourceAsStream("modSpeedUp.png"));
     // End load sprites
     // Begin load blast sprites
     Image[][] blastImage = new Image[5][5];
@@ -131,6 +137,16 @@ public class GameView {
                     }
                     if (( pressedKeys.contains(KeyCode.G) ) &&  (Objects.equals(playerOnMove.get(controller.getPlayerIdByNumber(2)), Boolean.FALSE))) {
                         controller.playerPlantBomb(controller.getPlayerIdByNumber(2));
+                    }
+                    if (pressedKeys.contains(KeyCode.Q)) {
+                        // this.killPlayer(controller.getPlayers().getFirst());
+                        Player player = controller.getPlayers().getFirst();
+                        killPlayer(player);
+                    }
+                    if (pressedKeys.contains(KeyCode.M)) {
+                        Coordinates modCoord = new Coordinates(10, 10);
+                        Modifier mod = new Modifier(modCoord, ModifierType.SPEED_UP, 10);
+                        plantMod(mod);
                     }
                     // Update the last update time
                     lastUpdate = now;
@@ -228,7 +244,6 @@ public class GameView {
             grid.add(bombView, bomb.getCoordinates().getX(), bomb.getCoordinates().getY()); // it
         }
         // All bombs are on map
-
     }
 
 
@@ -317,6 +332,29 @@ public class GameView {
         }
 
     }
+    
+    public void plantMod(Modifier mod) {
+        Coordinates modCoord = mod.getCoordinates();
+        grid.getChildren().removeIf(node ->
+                GridPane.getColumnIndex(node) != null && GridPane.getRowIndex(node) != null &&
+                GridPane.getColumnIndex(node) == modCoord.getX() &&
+                GridPane.getRowIndex(node) == modCoord.getY()
+            );
+        // Remove previous mode under modifer
+        ModifierType type = mod.getType();
+        ImageView tileView = new ImageView();
+        tileView.setFitWidth(TILE_SIZE);
+        tileView.setFitHeight(TILE_SIZE);
+        switch (type) {
+            case ModifierType.REMOTE_EXPLOSION ->
+                tileView.setImage(modRemoteExplosion);
+            case ModifierType.PLUS_BOMB ->
+                tileView.setImage(modPlusBomb);
+            case ModifierType.SPEED_UP ->
+                tileView.setImage(modSpeedUp);
+            }
+        grid.add(tileView, modCoord.getY(), modCoord.getX());
+    }
 
     private void handleKeyPress(KeyEvent event) {
         pressedKeys.add(event.getCode());
@@ -327,9 +365,10 @@ public class GameView {
     }
     
     public void killPlayer(Player player) {
+        System.out.println("Player with id " + player.getId() + " is killed!");
         ImageView playerView = playerSprites.get(player.getId());
         grid.getChildren().remove(playerView);
-        // Remove player sprite from grig
+        // Remove player sprite from grid
         ImageView deadPlayerView = deadPlayerSprites.get(player.getId());
         grid.add(deadPlayerView, player.getCoordinates().getX(), player.getCoordinates().getY());
     }
