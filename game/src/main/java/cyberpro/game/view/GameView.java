@@ -15,6 +15,7 @@ import javafx.scene.layout.StackPane;
 import javafx.scene.layout.GridPane;
 import javafx.scene.input.KeyCode;
 import javafx.stage.Stage;
+import javafx.application.Platform;
 // Animation libs
 import javafx.animation.TranslateTransition;
 import javafx.util.Duration;
@@ -145,9 +146,9 @@ public class GameView {
                         killPlayer(player);
                     }
                     if (pressedKeys.contains(KeyCode.M)) {
-                        Coordinates modCoord = new Coordinates(10, 10);
-                        Modifier mod = new Modifier(modCoord, ModifierType.SPEED_UP, 10);
-                        plantMod(mod);
+                        // GameOverWindow gameOver = new GameOverWindow("Game over");
+                        // Platform.runLater(() -> new GameOverWindow("You lose!"));
+                        gameOver("Game over");
                     }
                     // Update the last update time
                     lastUpdate = now;
@@ -364,6 +365,10 @@ public class GameView {
             }
         grid.add(tileView, modCoord.getX(), modCoord.getY());
     }
+    
+    public void removeMod(Modifier mod) {
+        // Place a code to remove modifier if it was taken
+    }
 
     private void handleKeyPress(KeyEvent event) {
         pressedKeys.add(event.getCode());
@@ -373,6 +378,10 @@ public class GameView {
         pressedKeys.remove(event.getCode());
     }
     
+    public void gameOver() {
+        
+    }
+    
     public void killPlayer(Player player) {
         System.out.println("Player with id " + player.getId() + " is killed!");
         ImageView playerView = playerSprites.get(player.getId());
@@ -380,5 +389,9 @@ public class GameView {
         // Remove player sprite from grid
         ImageView deadPlayerView = deadPlayerSprites.get(player.getId());
         grid.add(deadPlayerView, player.getCoordinates().getX(), player.getCoordinates().getY());
+    }
+    
+    private void gameOver(String msg) {
+        Platform.runLater(() -> new GameOverWindow(msg));
     }
 }

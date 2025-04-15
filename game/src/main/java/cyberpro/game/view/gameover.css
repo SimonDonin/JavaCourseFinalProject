@@ -1,0 +1,21 @@
+.game-over-layout {
+    -fx-background-image: url("gameover-bg.jpg");
+    -fx-background-size: cover;
+    -fx-padding: 30;
+}
+
+.game-over-label {
+    -fx-text-fill: white;
+    -fx-font-size: 28px;
+    -fx-font-family: "ArcadeClassic", "Verdana", sans-serif;
+    -fx-effect: dropshadow(gaussian, black, 4, 0.5, 2, 2);
+}
+
+.game-over-button {
+    -fx-font-size: 18px;
+    -fx-font-weight: bold;
+    -fx-padding: 10 20;
+    -fx-background-color: #cc0000;
+    -fx-text-fill: white;
+    -fx-background-radius: 10;
+}
