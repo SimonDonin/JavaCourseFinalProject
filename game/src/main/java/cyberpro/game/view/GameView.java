@@ -32,6 +32,7 @@ import cyberpro.game.controller.GameController;
 import cyberpro.game.model.*;
 import cyberpro.game.view.GameView;
 import cyberpro.game.controller.ModifierType;
+import javafx.scene.Node;
 
 /**
  *
@@ -161,10 +162,10 @@ public class GameView {
 
         stage.setOnCloseRequest(event -> {
             System.out.println("Stage is closing...");
-            System.exit(0); // <-- принудительно завершает процесс
+            System.exit(0); // <-- Close the app with all threads
         });
 
-        grid.requestFocus(); // Запрашиваем фокус
+        grid.requestFocus(); // Request focus to catch keypresses
         
         // Create a specific sprite for each player
         players = controller.getPlayers();
@@ -211,6 +212,7 @@ public class GameView {
 
     public void drawGrid(ArrayList<Player> players, ArrayList<Bomb> bombs, ArrayList<Modifier> modifiers) {
         grid.getChildren().clear();
+        // We need to clear all grid. GridPane do not allow duplicated nodes
         for (int row = 0; row < gridWidth; row++) {
             for (int col = 0; col < gridHeight; col++) {
                 ImageView tileView = new ImageView();
@@ -231,7 +233,8 @@ public class GameView {
         // Begin put players on the grid
         for (Player player : players) {
             String playerID = player.getId();
-            ImageView playerView = playerSprites.get(playerID);
+            ImageView playerView;
+            playerView = player.isAlive() ? playerSprites.get(playerID) : deadPlayerSprites.get(playerID);
             grid.add(playerView, player.getCoordinates().getX(), player.getCoordinates().getY());
         }
         // End. All players are on map
@@ -244,6 +247,12 @@ public class GameView {
             grid.add(bombView, bomb.getCoordinates().getX(), bomb.getCoordinates().getY()); // it
         }
         // All bombs are on map
+        
+        // Begin put modifiers on the grid
+        for (Modifier mod : modifiers) {
+            plantMod(mod);
+        }
+        // All modifiers are on grid
     }
 
 
@@ -353,7 +362,7 @@ public class GameView {
             case ModifierType.SPEED_UP ->
                 tileView.setImage(modSpeedUp);
             }
-        grid.add(tileView, modCoord.getY(), modCoord.getX());
+        grid.add(tileView, modCoord.getX(), modCoord.getY());
     }
 
     private void handleKeyPress(KeyEvent event) {
