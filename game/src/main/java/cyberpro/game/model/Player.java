@@ -20,6 +20,7 @@ public class Player {
 	private int speed;
 	private Colors color;
 	private ArrayList<Modifier> playerModifiers;
+	private static final int DEFAULT_PLAYER_SPEED = 1;
 
 	public Player(String name, Coordinates coordinates) {
 		this.id = "P" + ++counter;
@@ -130,6 +131,14 @@ public class Player {
 			}
 		}
 		return count;
+	}
+	
+	public int calculatePlayerSpeed(String playerId) {
+		int speedInModifiers = 0;
+		if (findModifierByType(ModifierType.SPEED_UP) != null) {
+			speedInModifiers = 1;
+		}
+		return DEFAULT_PLAYER_SPEED; /* DEFAULT_PLAYER_SPEED + speedInModifiers; */
 	}
 
 }
