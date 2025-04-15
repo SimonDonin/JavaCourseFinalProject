@@ -1,0 +1,26 @@
+/*
+Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
+Click nbfs://nbhost/SystemFileSystem/Templates/Other/CascadeStyleSheet.css to edit this template
+*/
+/* 
+    Created on : Apr 15, 2025, 8:55:42 PM
+    Author     : mikhail
+*/
+
+.mode-label {
+    -fx-text-fill: #fff;
+    -fx-font-size: 20px;
+    -fx-padding: 10 0 0 0;
+}
+
+.radio-button {
+    -fx-text-fill: white;
+}
+
+.radio-button .text {
+    -fx-fill: white;
+}
+
+.radio-button:selected {
+    -fx-font-weight: bold;
+}
