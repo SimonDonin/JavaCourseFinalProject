@@ -5,7 +5,7 @@ import java.util.Date;
 import cyberpro.game.controller.ModifierType;
 
 public class Modifier {
-	private int counter = 0;
+	private static int counter = 0;
 	private String id;
 	private Coordinates coordinates;
 	private ModifierType type;

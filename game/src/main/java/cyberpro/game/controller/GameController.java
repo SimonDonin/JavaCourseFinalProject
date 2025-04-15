@@ -30,9 +30,11 @@ public class GameController implements ControllerInterface {
 	private static final TileType[] TILES_EXPLOSIBLE = { TileType.FLOOR, TileType.EXPLOSION, TileType.BRICK_WALL };
 	private static final TileType[] TILES_DESTRUCTIBLE = { TileType.BRICK_WALL };
 	private static final int DEFAULT_MAX_BOMBS_ACTIVE = 1;
+	private static final int GAME_OVER_TIME = 5;
 
 	private ScheduledExecutorService schedulerForExplosion = Executors.newScheduledThreadPool(10);
 	private ScheduledExecutorService schedulerForRaysOff = Executors.newScheduledThreadPool(10);
+	private ScheduledExecutorService schedulerForGameOver = Executors.newScheduledThreadPool(1);
 
 	// You a checkin tiles with is possible to walk abowe. But EXPLOSION, RAY
 
@@ -136,19 +138,19 @@ public class GameController implements ControllerInterface {
 		// calculating a new coordinate
 		switch (direction) {
 		case "right" -> {
-			newX = playerFound.getCoordinates().getX() + playerFound.getSpeed();
+			newX = playerFound.getCoordinates().getX() + playerFound.calculatePlayerSpeed(playerId);
 			newY = currentY;
 		}
 		case "left" -> {
-			newX = playerFound.getCoordinates().getX() - playerFound.getSpeed();
+			newX = playerFound.getCoordinates().getX() - playerFound.calculatePlayerSpeed(playerId);
 			newY = currentY;
 		}
 		case "up" -> {
-			newY = playerFound.getCoordinates().getY() - playerFound.getSpeed();
+			newY = playerFound.getCoordinates().getY() - playerFound.calculatePlayerSpeed(playerId);
 			newX = currentX;
 		}
 		case "down" -> {
-			newY = playerFound.getCoordinates().getY() + playerFound.getSpeed();
+			newY = playerFound.getCoordinates().getY() + playerFound.calculatePlayerSpeed(playerId);
 			newX = currentX;
 		}
 		default -> {
@@ -180,7 +182,8 @@ public class GameController implements ControllerInterface {
 		Platform.runLater(() -> {
 			// updating the player's sprite in the view
 			gameView.moveSprite(oldCoordinates, newCoordinates, playerFound);
-			//System.out.println("raysBombByCoordinates =" + raysBombByCoordinates(newCoordinates));
+			// System.out.println("raysBombByCoordinates =" +
+			// raysBombByCoordinates(newCoordinates));
 			// if player moves to the active rays he dies
 		});
 		if (raysBombByCoordinates(newCoordinates)) {
@@ -296,11 +299,16 @@ public class GameController implements ControllerInterface {
 		// validation if a player isn't found by Id
 		if (playerFound == null)
 			return;
+		// only allowed amount of bombs can be planted by the player at the same time
 		if (countBombsActive(playerId) >= countBombsAllowed(playerId)) {
 			System.out.println("Player " + playerId + " can't plant more bombs: current active bombs number = "
-		+ countBombsActive(playerId) + " and allowed = " + countBombsAllowed(playerId));
+					+ countBombsActive(playerId) + " and allowed = " + countBombsAllowed(playerId));
 			return;
 		}
+		// unable to plant the second bomb at the same place
+		Bomb bombFound = bombByCoordinates(playerFound.getCoordinates());
+		if (bombFound != null)
+			return;
 		// calculation of a blast time
 		Date now = new Date();
 		Calendar calendar = Calendar.getInstance();
@@ -331,17 +339,21 @@ public class GameController implements ControllerInterface {
 		if (bombFound == null)
 			return;
 		bombFound.explode();
-		System.out.println("\n\n" + bombFound);
-
-		System.out.println("\n\nFound a bomb:\n" + bombFound);
+		/*
+		 * System.out.println("\n\n" + bombFound);
+		 * System.out.println("\n\nFound a bomb:\n" + bombFound);
+		 */
 		makeRaysInOneDirection(bombFound, "right");
 		makeRaysInOneDirection(bombFound, "left");
 		makeRaysInOneDirection(bombFound, "up");
 		makeRaysInOneDirection(bombFound, "down");
+		makeRaysInOneDirection(bombFound, "center");
 
 		// rays array validation
-		System.out.println("\nOur bomb is still " + bombFound);
-		System.out.println("Rays array is " + bombFound.getRays());
+		/*
+		 * System.out.println("\nOur bomb is still " + bombFound);
+		 * System.out.println("Rays array is " + bombFound.getRays());
+		 */
 
 		Platform.runLater(() -> {
 			// draw explosion in the view
@@ -349,8 +361,10 @@ public class GameController implements ControllerInterface {
 			// transfer the bomb from the bombs list to the exploded bombs list
 			game.assignExploded(bombFound);
 		});
-		System.out.println("Bombs array before removal = " + game.getBombs());
-		System.out.println("Bombs array after removal = " + game.getBombs());
+		/*
+		 * System.out.println("Bombs array before removal = " + game.getBombs());
+		 * System.out.println("Bombs array after removal = " + game.getBombs());
+		 */
 
 		// calculating time for rays to disappear and Setting up a timer to do it
 		// eliminating the bomb from the exploded bombs list
@@ -364,8 +378,8 @@ public class GameController implements ControllerInterface {
 	public void makeRaysInOneDirection(Bomb bombFound, String direction) {
 
 		Coordinates iCoordinate;
-		int raysRange = Bomb.getDefaultRaysRange();
-		System.out.println("\nMoving " + direction + "\n");
+		int raysRange = calculateRaysRange(bombFound.getPlayerId());
+		//System.out.println("\nMoving " + direction + "\n");
 
 		for (int i = 1; i <= raysRange; i++) {
 			// collecting coordinates for potential rays
@@ -379,6 +393,8 @@ public class GameController implements ControllerInterface {
 				iCoordinate = new Coordinates(bombFound.getCoordinates().getX(), bombFound.getCoordinates().getY() - i);
 			case "down" ->
 				iCoordinate = new Coordinates(bombFound.getCoordinates().getX(), bombFound.getCoordinates().getY() + i);
+			case "center" ->
+			iCoordinate = new Coordinates(bombFound.getCoordinates().getX(), bombFound.getCoordinates().getY());
 			default -> {
 				System.out.println("No such direction!");
 				return;
@@ -393,13 +409,15 @@ public class GameController implements ControllerInterface {
 			boolean destructible = isDestructible(iCoordinate);
 
 			// printing for diagnostics
-			System.out.println("i = " + i);
-			System.out.println("Coordinate " + iCoordinate + " is being considered");
-			System.out.println("Inside the board = " + insideBoard);
-			System.out.println("FreeToOccupy = " + freeToOccupy);
-			System.out.println("Explosible = " + explosible);
-			System.out.println("AnyPlayerHere = " + playerHere);
-			System.out.println("Destructible = " + destructible);
+			/*
+			 * System.out.println("i = " + i); System.out.println("Coordinate " +
+			 * iCoordinate + " is being considered");
+			 * System.out.println("Inside the board = " + insideBoard);
+			 * System.out.println("FreeToOccupy = " + freeToOccupy);
+			 * System.out.println("Explosible = " + explosible);
+			 * System.out.println("AnyPlayerHere = " + playerHere);
+			 * System.out.println("Destructible = " + destructible);
+			 */
 
 			// if the coordinate is out of the board, quit the cycle
 			if (!insideBoard) {
@@ -409,11 +427,14 @@ public class GameController implements ControllerInterface {
 			// killing players
 			if (playerHere) {
 				Player playerFound = playerByCoordinates(iCoordinate);
-				System.out.println("Player is here ! It's " + playerFound.getName());
+				// System.out.println("Player is here ! It's " + playerFound.getName());
 				if (playerFound != null) {
 					killPlayer(playerFound);
 				}
 			}
+			
+			// quit cycle in case of central direction
+			if (direction.equalsIgnoreCase("center")) return;
 
 			// find out if this coordinate is busy with a solid tile
 			if (!freeToOccupy) {
@@ -421,15 +442,19 @@ public class GameController implements ControllerInterface {
 				if (destructible) {
 
 					// printing tile before the change
-					System.out.println("Our board is still " + game.getBoard());
-					System.out.println("Before demolishing the tile is "
-							+ game.getBoard().getCell(iCoordinate.getX(), iCoordinate.getY()));
-					System.out.println("Demolishing BRICK WALL " + iCoordinate);
-					// tile change to the FLOOR
+					/*
+					 * System.out.println("Our board is still " + game.getBoard());
+					 * System.out.println("Before demolishing the tile is " +
+					 * game.getBoard().getCell(iCoordinate.getX(), iCoordinate.getY()));
+					 * System.out.println("Demolishing BRICK WALL " + iCoordinate); // tile change
+					 * to the FLOOR
+					 */
 					game.getBoard().setCell(iCoordinate.getX(), iCoordinate.getY(), TileType.FLOOR);
 					// printing tile after the change
-					System.out.println("After demolishing the tile is "
-							+ game.getBoard().getCell(iCoordinate.getX(), iCoordinate.getY()));
+					/*
+					 * System.out.println("After demolishing the tile is " +
+					 * game.getBoard().getCell(iCoordinate.getX(), iCoordinate.getY()));
+					 */
 					// adding rays at the cell being destroyed
 					bombFound.addToRays(iCoordinate);
 
@@ -456,6 +481,18 @@ public class GameController implements ControllerInterface {
 			}
 
 		}
+	}
+
+	private int calculateRaysRange(String playerId) {
+		Player playerFound = game.findPlayerById(playerId);
+		// validation if a player isn't found by Id
+		if (playerFound == null) return -1;
+		int countRange = Bomb.getDefaultRaysRange();
+		int countRangeUp = playerFound.countModifiersByType(ModifierType.PLUS_RANGE);
+		countRange += countRangeUp;
+		
+		
+		return countRange;
 	}
 
 	public void draw() {
@@ -555,7 +592,31 @@ public class GameController implements ControllerInterface {
 			System.err.println("Sending requiest to gameView to kill the player");
 			gameView.killPlayer(playerFound);
 		});
+		// setting up a timer for game over
+		schedulerForGameOver.schedule(() -> gameOver(), GAME_OVER_TIME, TimeUnit.SECONDS);
 		return true;
+	}
+
+	// game over implementation
+	private void gameOver() {
+		if (!game.getPlayers().get(0).isAlive() && !game.getPlayers().get(1).isAlive()) {
+			gameView.gameOver(); // add a DRAW message
+			System.out.println("Sending a request for the DRAW message");
+			return;
+		}
+		if (!game.getPlayers().get(0).isAlive() && game.getPlayers().get(1).isAlive()) {
+			gameView.gameOver(); // add a Player 2 wins message message
+			System.out.println("Sending a request for the Player 1 WINS message");
+			return;
+		}
+		if (game.getPlayers().get(0).isAlive() && !game.getPlayers().get(1).isAlive()) {
+			gameView.gameOver(); // add a Player 1 wins message message
+			System.out.println("Sending a request for the Player 2 WINS message");
+			return;
+		}
+		System.out.println("Noone wins");
+		return;
+		
 	}
 
 	// returns the bomb that has its rays at the coordinates specified
@@ -596,6 +657,7 @@ public class GameController implements ControllerInterface {
 
 	public boolean takeModifier(Player player, Modifier modifier) {
 		Modifier modifierFound = player.findModifierById(modifier.getId());
+		System.out.println(modifierFound);
 		if (modifierFound != null) {
 			return false;
 		}
