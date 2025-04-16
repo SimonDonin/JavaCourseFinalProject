@@ -33,6 +33,8 @@ import cyberpro.game.controller.GameController;
 import cyberpro.game.model.*;
 import cyberpro.game.view.GameView;
 import cyberpro.game.controller.ModifierType;
+import java.io.FileNotFoundException;
+import java.io.InputStream;
 import javafx.scene.Node;
 
 /**
@@ -43,12 +45,9 @@ public class GameView {
 
     private ControllerInterface controller;
     private final int TILE_SIZE = 40;
-    // This is actually size of a sprite. It will depend on actual size of game
-    // board
+    // This is actually size of a sprite. It will depend on actual size of game board
     private GridPane grid;
     // Create GridPane object to display all graphical objects.
-    // It is also possible to use TilePane, but we use GridPane because of better
-    // control methods
     private TileType[][] gameBoard;
     // Game board array. We have to recive it from a Controller
     
@@ -66,15 +65,19 @@ public class GameView {
     // End load sprites
     // Begin load blast sprites
     Image[][] blastImage = new Image[5][5];
+    private Image blastCenter, blastLeftTip, blastRightTip, blastBottomTip, blastTopTip;
+    private Image blastLeftRay, blastRightRay, blastTopRay, blastBottomRay;
     
 
-    // Begin declare map lists for player and bomb sprites
+    // Begin declare map lists for player, modifier and bomb sprites
     private Map<String, ImageView> playerSprites = new HashMap<>();
     private Map<String, ImageView> bombSprites = new HashMap<>();
     private Map<String, ImageView> deadPlayerSprites = new HashMap<>();
+    private Map<String, ImageView> modifierSprites = new HashMap<>();
     // End declare map lists for player and bomb sprites
     
     private Map<String, Boolean> playerOnMove = new HashMap<>();
+    private Map<String, Integer> playerSpeed = new HashMap<>();
 
     private final Set<KeyCode> pressedKeys = new HashSet<>();
 
@@ -84,6 +87,8 @@ public class GameView {
     private int gridWidth;
     private int gridHeight;
     // Shall be defined at model.
+    
+    private int playerDefaultSpeed = 150;
 
     public GameView(Stage stage, ControllerInterface controller) {
         this.controller = controller; // Сохраняем контроллер для дальнейшей работы
@@ -177,7 +182,7 @@ public class GameView {
         for (Player player : players) {
             String playerID = player.getId();
             String sprite = "character" + counter + ".png";
-            System.out.println(sprite);
+            // System.out.println(sprite);
             playerImage = new Image(getClass().getResourceAsStream(sprite));
             playerView = new ImageView(playerImage);
             playerView.setFitWidth(TILE_SIZE);
@@ -191,20 +196,33 @@ public class GameView {
             deadPlayerSprites.put(playerID, deadPlayerView);
             playerOnMove.put(controller.getPlayerIdByNumber(counter), Boolean.FALSE);
             counter++;
+            playerSpeed.put(playerID, playerDefaultSpeed);
+            // Set default speed for each player in ms
         }
         // All player's sprites are in playerSprites list
         
         // Create blast sprites
-        blastImage[0][2] = new Image(getClass().getResourceAsStream("blast/blast0,2.png"));
-        blastImage[1][2] = new Image(getClass().getResourceAsStream("blast/blast1,2.png"));
-        blastImage[2][2] = new Image(getClass().getResourceAsStream("blast/blast2,2.png"));
-        blastImage[3][2] = new Image(getClass().getResourceAsStream("blast/blast3,2.png"));
-        blastImage[4][2] = new Image(getClass().getResourceAsStream("blast/blast4,2.png"));
-        blastImage[2][0] = new Image(getClass().getResourceAsStream("blast/blast2,0.png"));
-        blastImage[2][1] = new Image(getClass().getResourceAsStream("blast/blast2,1.png"));
-        blastImage[2][3] = new Image(getClass().getResourceAsStream("blast/blast2,3.png"));
-        blastImage[2][4] = new Image(getClass().getResourceAsStream("blast/blast2,4.png"));
-        
+        try {
+            blastCenter = loadImage("blast/blastCenter.png");
+            blastTopTip = loadImage("blast/blastTopTip.png");
+            blastBottomTip = loadImage("blast/blastBottomTip.png");
+            blastBottomRay = loadImage("blast/blastBottomRay.png");
+            blastLeftTip = loadImage("blast/blastLeftTip.png");
+            blastLeftRay = loadImage("blast/blastLeftRay.png");
+            blastRightTip = loadImage("blast/blastRightTip.png");
+            blastRightRay = loadImage("blast/blastRightRay.png");
+        } catch (FileNotFoundException e) {
+            System.out.println("Can't load blast sprites. Check folder 'blast' inside a view folder");
+            e.printStackTrace(); // or show an alert, log to file, etc.
+        }
+    }
+    
+    private Image loadImage(String path) throws FileNotFoundException {
+        InputStream stream = getClass().getResourceAsStream(path);
+        if (stream == null) {
+            throw new FileNotFoundException("Image file not found: " + path);
+        }
+        return new Image(stream);
     }
 
     public void getBoard(TileType[][] board) {
@@ -219,14 +237,21 @@ public class GameView {
                 ImageView tileView = new ImageView();
                 tileView.setFitWidth(TILE_SIZE);
                 tileView.setFitHeight(TILE_SIZE);
-                switch (gameBoard[row][col]) {
-                    case FLOOR ->
-                        tileView.setImage(floorImage);
-                    case BRICK_WALL ->
-                        tileView.setImage(brickWallImage);
-                    case CONCRETE_WALL ->
-                        tileView.setImage(concreteWallImage);
+                try {
+                    switch (gameBoard[row][col]) {
+                        case FLOOR ->
+                            tileView.setImage(floorImage);
+                        case BRICK_WALL ->
+                            tileView.setImage(brickWallImage);
+                        case CONCRETE_WALL ->
+                            tileView.setImage(concreteWallImage);
+                    }
+                } catch (IndexOutOfBoundsException e) {
+                    System.out.println("Invalid index at row " + row + ", col " + col);
+                    System.out.println("Check gridWidth, gridHeight parameters");
+                    e.printStackTrace(); // Optional: log the error
                 }
+                
                 grid.add(tileView, row, col);
             }
         }
@@ -313,6 +338,8 @@ public class GameView {
             System.out.println("No bomb");
             return;
         }
+        ImageView blastView;
+        /* Try to replace it with more "smart" code
         ImageView bombView = bombSprites.get(bomb.getId());
         grid.getChildren().remove(bombView);
         bombSprites.remove(bomb.getId());
@@ -339,8 +366,70 @@ public class GameView {
             blastView.setFitWidth(TILE_SIZE);
             blastView.setFitHeight(TILE_SIZE);
             grid.add(blastView, blast.getX(), blast.getY());
+            */
+        int centerX = bomb.getCoordinates().getX();
+        int centerY = bomb.getCoordinates().getY();
+        int minX = centerX;
+        int maxX = centerX;
+        int minY = centerY;
+        int maxY = centerY;
+        
+        int leftRay, rightRay, topRay, bottomRay;
+        
+        for (Coordinates c : blastWave) {
+            if (c.getX() < minX) minX = c.getX();
+            if (c.getX() > maxX) maxX = c.getX();
+            if (c.getY() < minY) minY = c.getY();
+            if (c.getY() > maxY) maxY = c.getY();
         }
+        // Now we have min/max coordinates for blast wave
+        leftRay = centerX - minX;
+        rightRay = maxX - centerX;
+        topRay = maxY - centerY;
+        bottomRay = centerY - minY;
+        // Now we have a ray length for every direction
+        for (Coordinates blast : blastWave) {
+            grid.getChildren().removeIf(node ->
+                GridPane.getColumnIndex(node) != null && GridPane.getRowIndex(node) != null &&
+                GridPane.getColumnIndex(node) == blast.getX() &&
+                GridPane.getRowIndex(node) == blast.getY()
+            );
+        }
+        // Clean all tiles under the blast wave to avoid nested node error
+        drawBlast(blastCenter, centerX, centerY);
+        if (minX < centerX) { drawBlast(blastLeftTip, minX, centerY); }
+        if (maxX > centerX) { drawBlast(blastRightTip, maxX, centerY); }
+        if (minY < centerY) { drawBlast(blastTopTip, centerX, minY); }
+        if (maxY > centerY) { drawBlast(blastBottomTip, centerX, maxY); }
+        // Do not draw ray if it is close to a wall
 
+        if ((centerX - minX) > 1 ) {
+            System.out.println("centerX=" + centerX + " minX=" + minX);
+        for (int x = (centerX-1); x > minX; x--) {
+            drawBlast(blastLeftRay, x, centerY);
+        } }
+        if ((maxX - centerX) > 1) {
+        for (int x = (centerX+1); x < maxX; x++) {
+            drawBlast(blastRightRay, x, centerY);
+        } }
+        if ((centerY - minY) > 1) {
+        for (int y = (centerY-1); y > minY; y--) {
+            drawBlast(blastBottomRay, centerX, y);
+        } }
+        if ((maxY - centerY) > 1) {
+        for (int y = (centerY+1); y < maxY; y++) {
+            drawBlast(blastBottomRay, centerX, y);
+        } }
+        // Do not draw rays if ray length is < 2 
+        // (so ray have only a tip or no ray)
+    }
+        
+    private void drawBlast(Image img, int x, int y) {
+        ImageView blastView;
+        blastView = new ImageView(img);
+        blastView.setFitWidth(TILE_SIZE);
+        blastView.setFitHeight(TILE_SIZE);
+        grid.add(blastView, x, y);
     }
     
     public void plantMod(Modifier mod) {
@@ -350,24 +439,29 @@ public class GameView {
                 GridPane.getColumnIndex(node) == modCoord.getX() &&
                 GridPane.getRowIndex(node) == modCoord.getY()
             );
-        // Remove previous mode under modifer
+        // Remove previous tile under modifer
         ModifierType type = mod.getType();
-        ImageView tileView = new ImageView();
-        tileView.setFitWidth(TILE_SIZE);
-        tileView.setFitHeight(TILE_SIZE);
+        ImageView modView = new ImageView();
+        modView.setFitWidth(TILE_SIZE);
+        modView.setFitHeight(TILE_SIZE);
         switch (type) {
             case ModifierType.REMOTE_EXPLOSION ->
-                tileView.setImage(modRemoteExplosion);
+                modView.setImage(modRemoteExplosion);
             case ModifierType.PLUS_BOMB ->
-                tileView.setImage(modPlusBomb);
+                modView.setImage(modPlusBomb);
             case ModifierType.SPEED_UP ->
-                tileView.setImage(modSpeedUp);
+                modView.setImage(modSpeedUp);
             }
-        grid.add(tileView, modCoord.getX(), modCoord.getY());
+        modifierSprites.put(mod.getId(), modView);
+        // We add new modifier to a list, so we know what to remove after
+        grid.add(modView, modCoord.getX(), modCoord.getY());
     }
     
     public void removeMod(Modifier mod) {
         // Place a code to remove modifier if it was taken
+        ImageView modView = modifierSprites.get(mod.getId());
+        grid.getChildren().remove(modView);
+        // We just remove a sprite from a game board. No additional actions is required
     }
 
     private void handleKeyPress(KeyEvent event) {
@@ -393,5 +487,11 @@ public class GameView {
     
     private void gameOver(String msg) {
         Platform.runLater(() -> new GameOverWindow(msg));
+    }
+    
+    public void playerSpeed(Player player, int speed) {
+        playerSpeed.replace(player.getId(), (int)((float)playerDefaultSpeed/speed*100));
+        // I use dobule type conversion. It looks weird, but works good. 
+        // I just want to set speed in %
     }
 }
