@@ -31,10 +31,10 @@ public class GameController implements ControllerInterface {
 	private static final TileType[] TILES_DESTRUCTIBLE = { TileType.BRICK_WALL };
 	private static final int DEFAULT_MAX_BOMBS_ACTIVE = 1;
 	private static final int GAME_OVER_TIME = 5;
-
 	private ScheduledExecutorService schedulerForExplosion = Executors.newScheduledThreadPool(10);
 	private ScheduledExecutorService schedulerForRaysOff = Executors.newScheduledThreadPool(10);
 	private ScheduledExecutorService schedulerForGameOver = Executors.newScheduledThreadPool(1);
+	private ScheduledExecutorService schedulerForModifiersOff = Executors.newScheduledThreadPool(10);
 
 	// You a checkin tiles with is possible to walk abowe. But EXPLOSION, RAY
 
@@ -135,22 +135,33 @@ public class GameController implements ControllerInterface {
 		int newX = 0;
 		int newY = 0;
 
+		// REVERSE modifier implementation
+		if (playerFound.findModifierByType(ModifierType.REVERSE_CONTROLS) != null) {
+			switch (direction) {
+			case "right" -> direction = "left";
+			case "left" -> direction = "right";
+			case "up" -> direction = "down";
+			case "down" -> direction = "up";
+			default -> System.out.println("Unknown command. Can't be reversed");
+			}
+		}
+
 		// calculating a new coordinate
 		switch (direction) {
 		case "right" -> {
-			newX = playerFound.getCoordinates().getX() + playerFound.calculatePlayerSpeed(playerId);
+			newX = playerFound.getCoordinates().getX() + 1;
 			newY = currentY;
 		}
 		case "left" -> {
-			newX = playerFound.getCoordinates().getX() - playerFound.calculatePlayerSpeed(playerId);
+			newX = playerFound.getCoordinates().getX() - 1;
 			newY = currentY;
 		}
 		case "up" -> {
-			newY = playerFound.getCoordinates().getY() - playerFound.calculatePlayerSpeed(playerId);
+			newY = playerFound.getCoordinates().getY() - 1;
 			newX = currentX;
 		}
 		case "down" -> {
-			newY = playerFound.getCoordinates().getY() + playerFound.calculatePlayerSpeed(playerId);
+			newY = playerFound.getCoordinates().getY() + 1;
 			newX = currentX;
 		}
 		default -> {
@@ -322,6 +333,14 @@ public class GameController implements ControllerInterface {
 				explosionTime);
 		game.addBomb(newBomb);
 
+		// setting up a timer for bomb to change its look
+				schedulerForExplosion.schedule(() -> {
+					Platform.runLater(() -> {
+						gameView.plantBomb(newBomb);
+					});
+					System.out.println("Requested the bomb to change its look");}, DEFAULT_TIME_TILL_EXPLOSION / 2,
+						TimeUnit.SECONDS);
+		
 		// setting up a timer for bomb to explode
 		schedulerForExplosion.schedule(() -> explodeBomb(newBomb.getId()), DEFAULT_TIME_TILL_EXPLOSION,
 				TimeUnit.SECONDS);
@@ -379,7 +398,7 @@ public class GameController implements ControllerInterface {
 
 		Coordinates iCoordinate;
 		int raysRange = calculateRaysRange(bombFound.getPlayerId());
-		//System.out.println("\nMoving " + direction + "\n");
+		// System.out.println("\nMoving " + direction + "\n");
 
 		for (int i = 1; i <= raysRange; i++) {
 			// collecting coordinates for potential rays
@@ -394,7 +413,7 @@ public class GameController implements ControllerInterface {
 			case "down" ->
 				iCoordinate = new Coordinates(bombFound.getCoordinates().getX(), bombFound.getCoordinates().getY() + i);
 			case "center" ->
-			iCoordinate = new Coordinates(bombFound.getCoordinates().getX(), bombFound.getCoordinates().getY());
+				iCoordinate = new Coordinates(bombFound.getCoordinates().getX(), bombFound.getCoordinates().getY());
 			default -> {
 				System.out.println("No such direction!");
 				return;
@@ -432,9 +451,10 @@ public class GameController implements ControllerInterface {
 					killPlayer(playerFound);
 				}
 			}
-			
+
 			// quit cycle in case of central direction
-			if (direction.equalsIgnoreCase("center")) return;
+			if (direction.equalsIgnoreCase("center"))
+				return;
 
 			// find out if this coordinate is busy with a solid tile
 			if (!freeToOccupy) {
@@ -459,7 +479,7 @@ public class GameController implements ControllerInterface {
 					bombFound.addToRays(iCoordinate);
 
 					// uncovering a modifier under the destroyed brick wall
-					Modifier newModifier = new Modifier(iCoordinate, uncoverModifier(iCoordinate), 30);
+					Modifier newModifier = new Modifier(iCoordinate, uncoverModifier(iCoordinate));
 					game.addModifier(newModifier);
 					System.out.println("The modifiers list now is " + game.getModifiers());
 					Platform.runLater(() -> gameView.plantMod(newModifier));
@@ -486,12 +506,12 @@ public class GameController implements ControllerInterface {
 	private int calculateRaysRange(String playerId) {
 		Player playerFound = game.findPlayerById(playerId);
 		// validation if a player isn't found by Id
-		if (playerFound == null) return -1;
+		if (playerFound == null)
+			return -1;
 		int countRange = Bomb.getDefaultRaysRange();
 		int countRangeUp = playerFound.countModifiersByType(ModifierType.PLUS_RANGE);
 		countRange += countRangeUp;
-		
-		
+
 		return countRange;
 	}
 
@@ -600,23 +620,23 @@ public class GameController implements ControllerInterface {
 	// game over implementation
 	private void gameOver() {
 		if (!game.getPlayers().get(0).isAlive() && !game.getPlayers().get(1).isAlive()) {
-			gameView.gameOver(); // add a DRAW message
+			gameView.gameOver("DRAW"); // add a DRAW message
 			System.out.println("Sending a request for the DRAW message");
 			return;
 		}
 		if (!game.getPlayers().get(0).isAlive() && game.getPlayers().get(1).isAlive()) {
-			gameView.gameOver(); // add a Player 2 wins message message
+			gameView.gameOver("Player 2 wins"); // add a Player 2 wins message message
 			System.out.println("Sending a request for the Player 1 WINS message");
 			return;
 		}
 		if (game.getPlayers().get(0).isAlive() && !game.getPlayers().get(1).isAlive()) {
-			gameView.gameOver(); // add a Player 1 wins message message
+			gameView.gameOver("Player 1 wins"); // add a Player 1 wins message
 			System.out.println("Sending a request for the Player 2 WINS message");
 			return;
 		}
 		System.out.println("Noone wins");
 		return;
-		
+
 	}
 
 	// returns the bomb that has its rays at the coordinates specified
@@ -662,9 +682,26 @@ public class GameController implements ControllerInterface {
 			return false;
 		}
 		player.addModifier(modifier);
+		// setting up the scheduler for removing the modifier after its duration ending
+		if (modifier.getDuration() != 0) {
+			schedulerForGameOver.schedule(() -> player.removeModifier(modifier), modifier.getDuration(),
+					TimeUnit.SECONDS);
+		}
+
 		System.out.println("Player " + player.getName() + " got the modifier " + modifier);
 
+		// if it is SPEED_UP
+		if (modifier.getType() == ModifierType.SPEED_UP) {
+			System.err.println("Speed up the player " + player.getId());
+			player.calculatePlayerSpeed();
+		}
+
 		game.removeModifier(modifier);
+		// removing the modifier in the view
+				Platform.runLater(() -> {
+					System.err.println("Sending requiest to gameView to remove the modifier");
+					gameView.removeMod(modifier);
+				});
 		return true;
 	}
 

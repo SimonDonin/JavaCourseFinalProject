@@ -485,7 +485,7 @@ public class GameView {
         grid.add(deadPlayerView, player.getCoordinates().getX(), player.getCoordinates().getY());
     }
     
-    private void gameOver(String msg) {
+    public void gameOver(String msg) {
         Platform.runLater(() -> new GameOverWindow(msg));
     }
     
