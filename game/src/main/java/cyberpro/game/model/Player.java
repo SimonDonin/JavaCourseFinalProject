@@ -27,7 +27,7 @@ public class Player {
 		this.name = name;
 		this.hitpoints = 100;
 		this.coordinates = coordinates;
-		this.speed = 1;
+		this.speed = 100;
 		this.color = Colors.GREEN;
 		this.playerModifiers = new ArrayList<>();
 		this.isAlive = true;
@@ -43,6 +43,10 @@ public class Player {
 
 	public int getSpeed() {
 		return speed;
+	}
+
+	private void setSpeed(int speed) {
+		this.speed = speed;
 	}
 
 	public Coordinates getCoordinates() {
@@ -93,12 +97,13 @@ public class Player {
 	}
 
 	public boolean kill() {
-		if (!isAlive()) return false;
+		if (!isAlive())
+			return false;
 		System.err.println("Player " + id + " was killed by an aweful explosion!");
 		setAlive(false);
 		return true;
 	}
-	
+
 	public Modifier findModifierById(String Id) {
 		if (playerModifiers == null)
 			return null;
@@ -109,7 +114,7 @@ public class Player {
 		}
 		return null;
 	}
-	
+
 	public Modifier findModifierByType(ModifierType modifierType) {
 		if (playerModifiers == null)
 			return null;
@@ -120,7 +125,7 @@ public class Player {
 		}
 		return null;
 	}
-	
+
 	public int countModifiersByType(ModifierType modifierType) {
 		if (playerModifiers == null)
 			return -1;
@@ -132,13 +137,13 @@ public class Player {
 		}
 		return count;
 	}
-	
-	public int calculatePlayerSpeed(String playerId) {
+
+	public void calculatePlayerSpeed() {
 		int speedInModifiers = 0;
 		if (findModifierByType(ModifierType.SPEED_UP) != null) {
-			speedInModifiers = 1;
+			speedInModifiers = 100;
 		}
-		return DEFAULT_PLAYER_SPEED; /* DEFAULT_PLAYER_SPEED + speedInModifiers; */
+		setSpeed(DEFAULT_PLAYER_SPEED + speedInModifiers);
 	}
 
 }

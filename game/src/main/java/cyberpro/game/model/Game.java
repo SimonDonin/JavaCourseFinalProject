@@ -5,7 +5,11 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ScheduledFuture;
+
 import cyberpro.game.view.TileType;
 import java.io.FileNotFoundException;
 
@@ -21,6 +25,7 @@ public class Game {
 	private ArrayList<Bomb> bombs;
 	private ArrayList<Bomb> bombsExploded;
 	private ArrayList<Modifier> modifiers;
+	private Map<String, ScheduledFuture> explosionTasksByBombId = new HashMap<>();
 
 	// public Game(String name, int playersNumber) { this.name = name;
 	// this.playersNumber = playersNumber; board = new Board(); players = new
@@ -69,6 +74,21 @@ public class Game {
 		return board;
 	}
 
+	public void putExplosionTaskByBombId(String bombId, ScheduledFuture scheduledTask) {
+		if (explosionTasksByBombId.containsKey(bombId)) {
+			return;
+		}
+		explosionTasksByBombId.put(bombId, scheduledTask);
+		System.out.println("Scheduled an explosion task for the bombId = " + bombId);
+	}
+	
+	public ScheduledFuture extractExplosionTaskByBombId(String bombId) {
+		ScheduledFuture scheduledTask = explosionTasksByBombId.get(bombId);
+		System.out.println("A scheduled task for the bomb with bombId = " + bombId + " was extracted successfully");
+		explosionTasksByBombId.remove(bombId);
+		return scheduledTask;
+		}
+	
 	public Bomb findBombById(String Id) {
 		if (bombs == null)
 			return null;
