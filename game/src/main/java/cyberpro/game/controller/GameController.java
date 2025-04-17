@@ -9,6 +9,7 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
 // This is starter for JavaFX window
@@ -116,6 +117,11 @@ public class GameController implements ControllerInterface {
 			plantBomb(command.substring(1));
 			System.out.println("Got a plant bomb command for a queue");
 		}
+		case 'E' -> {
+			RemoteBombExplode(command.substring(1));
+			System.out.println("Got a plant bomb command for a queue");
+		}
+
 		default -> System.out.println("Unknown command");
 		}
 		return true;
@@ -260,6 +266,12 @@ public class GameController implements ControllerInterface {
 	}
 
 	@Override
+	public void playerRemoteBombExplode(String playerId) {
+		commandQueue.add("E" + playerId);
+	}
+
+	
+	@Override
 	public String getPlayerIdByNumber(int playerNumber) {
 		if (game.getPlayers().isEmpty()) {
 			System.out.println("Players list is empty!");
@@ -327,23 +339,31 @@ public class GameController implements ControllerInterface {
 		calendar.add(Calendar.SECOND, DEFAULT_TIME_TILL_EXPLOSION);
 		Date explosionTime = calendar.getTime();
 
+		boolean remoteExplosion = false;
+		// checking if the player has active REMOTE_EXPLOSION modifier
+		if (playerFound.findModifierByType(ModifierType.REMOTE_EXPLOSION) != null) {
+			remoteExplosion = true;
+		}
+		
 		// creating a bomb and adding to the bombs list
 		Bomb newBomb = new Bomb(playerId,
-				new Coordinates(playerFound.getCoordinates().getX(), playerFound.getCoordinates().getY()), false,
+				new Coordinates(playerFound.getCoordinates().getX(), playerFound.getCoordinates().getY()), remoteExplosion,
 				explosionTime);
 		game.addBomb(newBomb);
 
 		// setting up a timer for bomb to change its look
-				schedulerForExplosion.schedule(() -> {
+		ScheduledFuture taskLook = schedulerForExplosion.schedule(() -> {
 					Platform.runLater(() -> {
 						gameView.plantBomb(newBomb);
 					});
 					System.out.println("Requested the bomb to change its look");}, DEFAULT_TIME_TILL_EXPLOSION / 2,
 						TimeUnit.SECONDS);
+		game.putExplosionTaskByBombId(newBomb.getId(), taskLook);
 		
 		// setting up a timer for bomb to explode
-		schedulerForExplosion.schedule(() -> explodeBomb(newBomb.getId()), DEFAULT_TIME_TILL_EXPLOSION,
+		ScheduledFuture taskExplode = schedulerForExplosion.schedule(() -> explodeBomb(newBomb.getId()), DEFAULT_TIME_TILL_EXPLOSION,
 				TimeUnit.SECONDS);
+		game.putExplosionTaskByBombId(newBomb.getId(), taskExplode);
 
 		System.out.println("Player " + playerId + " planted a bomb");
 		// ask view to draw the bomb
@@ -352,6 +372,25 @@ public class GameController implements ControllerInterface {
 		});
 	}
 
+	// explodes a player's bombs remotely by his command
+	private void RemoteBombExplode(String playerId) {
+		Player playerFound = game.findPlayerById(playerId);
+		// validation if a player isn't found by Id
+		if (playerFound == null)
+			return;
+		// searching for all the player's active bombs able to detonate remotely and detonate them immediately
+		for (Bomb bomb : game.getBombs()) {
+			if (bomb.getPlayerId().equalsIgnoreCase(playerId) && bomb.isDistantExplosion()) {
+				// canceling the scheduled tasks for future explosion
+				ScheduledFuture task = game.extractExplosionTaskByBombId(bomb.getId());
+				if (task == null) continue;
+				task.cancel(true);
+				// requesting to immediately explode
+				explodeBomb(bomb.getId());
+			}
+		}
+	}
+	
 	public void explodeBomb(String bombId) {
 		Bomb bombFound = game.findBombById(bombId);
 		// validation if a bomb isn't found by Id

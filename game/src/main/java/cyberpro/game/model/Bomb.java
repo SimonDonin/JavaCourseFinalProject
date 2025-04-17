@@ -56,6 +56,10 @@ public class Bomb {
 		return rays;
 	}
 
+	public boolean isDistantExplosion() {
+		return distantExplosion;
+	}
+
 	public boolean addToRays(Coordinates coordinates) {
 		System.out.println("Adding rays coordinate " + coordinates);
 		for (Coordinates coords : rays) {
