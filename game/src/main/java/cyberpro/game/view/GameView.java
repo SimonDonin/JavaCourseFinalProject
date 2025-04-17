@@ -130,6 +130,9 @@ public class GameView {
                     if ( ( pressedKeys.contains(KeyCode.SPACE) ) && (Objects.equals(playerOnMove.get(controller.getPlayerIdByNumber(1)), Boolean.FALSE))) {
                         controller.playerPlantBomb(controller.getPlayerIdByNumber(1));
                     }
+                    if ( ( pressedKeys.contains(KeyCode.O) ) && (Objects.equals(playerOnMove.get(controller.getPlayerIdByNumber(1)), Boolean.FALSE))) {
+                        controller.playerRemoteBombExplode(controller.getPlayerIdByNumber(1));
+                    }
                     if ( (pressedKeys.contains(KeyCode.W) ) &&  (Objects.equals(playerOnMove.get(controller.getPlayerIdByNumber(2)), Boolean.FALSE))) {
                         controller.playerMoveUp(controller.getPlayerIdByNumber(2));
                     }

@@ -74,6 +74,7 @@ public class Game {
 		return board;
 	}
 
+	// create a pair (bombId, scheduler object) to be able to cancel the scheduler later
 	public void putExplosionTaskByBombId(String bombId, ScheduledFuture scheduledTask) {
 		if (explosionTasksByBombId.containsKey(bombId)) {
 			return;

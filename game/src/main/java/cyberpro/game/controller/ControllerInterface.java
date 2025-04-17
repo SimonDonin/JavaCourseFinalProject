@@ -15,6 +15,8 @@ public interface ControllerInterface {
 	void playerMoveRight(String playerId);
 	
 	void playerPlantBomb(String playerId);
+	
+	void playerRemoteBombExplode(String playerId);
 
 	String getPlayerIdByNumber(int playerNumber);
 
