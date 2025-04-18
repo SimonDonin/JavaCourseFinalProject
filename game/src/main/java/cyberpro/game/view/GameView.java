@@ -25,6 +25,7 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.logging.*;
 import javafx.animation.AnimationTimer;
 
 // Package import
@@ -42,7 +43,10 @@ import javafx.scene.Node;
  * @author mikhail
  */
 public class GameView {
-
+    
+    Logger logger = Logger.getLogger(GameView.class.getName());
+    // Create logger using core Java API
+    
     private ControllerInterface controller;
     private final int TILE_SIZE = 40;
     // This is actually size of a sprite. It will depend on actual size of game board
@@ -62,9 +66,11 @@ public class GameView {
     private final Image modRemoteExplosion = new Image(getClass().getResourceAsStream("modRemoteExplosion.png"));
     private final Image modPlusBomb = new Image(getClass().getResourceAsStream("modPlusBomb.png"));
     private final Image modSpeedUp = new Image(getClass().getResourceAsStream("modSpeedUp.png"));
+    private final Image modPlusRange = new Image(getClass().getResourceAsStream("modPlusRange.png"));
+    private final Image modReverseCotrols = new Image(getClass().getResourceAsStream("modReverseControls.png"));
     // End load sprites
     // Begin load blast sprites
-    Image[][] blastImage = new Image[5][5];
+    // Image[][] blastImage = new Image[5][5];
     private Image blastCenter, blastLeftTip, blastRightTip, blastBottomTip, blastTopTip;
     private Image blastLeftRay, blastRightRay, blastTopRay, blastBottomRay;
     
@@ -82,7 +88,7 @@ public class GameView {
     private final Set<KeyCode> pressedKeys = new HashSet<>();
 
     private long lastUpdate = 0; // Tracks the last update time
-    private static final long MOVEMENT_DELAY = 100_000_000; // 200ms in nanoseconds
+    private static final long MOVEMENT_DELAY = 50_000_000; // 50ms in nanoseconds
 
     private int gridWidth;
     private int gridHeight;
@@ -91,8 +97,11 @@ public class GameView {
     private int playerDefaultSpeed = 150;
 
     public GameView(Stage stage, ControllerInterface controller) {
-        this.controller = controller; // Сохраняем контроллер для дальнейшей работы
-        this.gameBoard = controller.getBoard().getCells(); // Получаем массив плиток из Board
+        logger.setLevel(Level.FINE);
+        // Set Fine logging level for beta-testing. 
+        // [TODO] Rise logging level to Level.WARRINGS for a final package
+        this.controller = controller; // Get Controller interface to call its methods
+        this.gameBoard = controller.getBoard().getCells(); // Get a link to the gameboard cells
 
         grid = new GridPane();
         grid.setFocusTraversable(true); // Устанавливаем фокус для ввода
@@ -109,7 +118,6 @@ public class GameView {
         Scene scene = new Scene(grid, sceneSize, sceneSize);
         grid.setOnKeyPressed(this::handleKeyPress);
         grid.setOnKeyReleased(this::handleKeyRelease);
-        // grid.setOnKeyPressed(this::handleKeyPress); // Обработка нажатия клавиш
 
         AnimationTimer timer = new AnimationTimer() {
             @Override
@@ -215,7 +223,7 @@ public class GameView {
             blastRightTip = loadImage("blast/blastRightTip.png");
             blastRightRay = loadImage("blast/blastRightRay.png");
         } catch (FileNotFoundException e) {
-            System.out.println("Can't load blast sprites. Check folder 'blast' inside a view folder");
+            logger.log(Level.SEVERE, "Can't load blast sprites. Check folder 'blast' inside a view folder");
             e.printStackTrace(); // or show an alert, log to file, etc.
         }
     }
@@ -250,8 +258,8 @@ public class GameView {
                             tileView.setImage(concreteWallImage);
                     }
                 } catch (IndexOutOfBoundsException e) {
-                    System.out.println("Invalid index at row " + row + ", col " + col);
-                    System.out.println("Check gridWidth, gridHeight parameters");
+                    logger.log(Level.SEVERE, "Invalid index at row {0}, col {1}", new Object[]{row, col});
+                    logger.log(Level.SEVERE, "Check gridWidth, gridHeight parameters");
                     e.printStackTrace(); // Optional: log the error
                 }
                 
@@ -273,7 +281,7 @@ public class GameView {
             ImageView bombView = new ImageView(bombImage);
             bombView.setFitWidth(TILE_SIZE);
             bombView.setFitHeight(TILE_SIZE);
-            grid.add(bombView, bomb.getCoordinates().getX(), bomb.getCoordinates().getY()); // it
+            grid.add(bombView, bomb.getCoordinates().getX(), bomb.getCoordinates().getY());
         }
         // All bombs are on map
         
@@ -287,6 +295,8 @@ public class GameView {
 
     public void moveSprite(Coordinates oldCoord, Coordinates newCoord, Player player) {
         ImageView playerView = playerSprites.get(player.getId());
+        int movementSpeed = 150; // Speed of movement im ms
+        
         if (playerView == null) {
             return;
         }
@@ -303,13 +313,15 @@ public class GameView {
             return;
         }
         playerOnMove.replace(player.getId(), Boolean.TRUE);
-        // Movement log for debug
-        // System.out.printf("Moving player %s from (%d, %d) to (%d, %d)%n", player.getId(), oldX, oldY, newX, newY);
-
+        
         int deltaX = (newX - oldX) * TILE_SIZE;
         int deltaY = (newY - oldY) * TILE_SIZE;
-
-        TranslateTransition transition = new TranslateTransition(Duration.millis(150), playerView);
+        
+        movementSpeed = movementSpeed*100 / player.getSpeed();
+        // Greater speed --> smaller transition delay 
+        logger.log(Level.INFO, "Movement delay is {1} ms", movementSpeed);
+        
+        TranslateTransition transition = new TranslateTransition(Duration.millis(movementSpeed), playerView);
         transition.setByX(deltaX);
         transition.setByY(deltaY);
         transition.setOnFinished(e -> {
@@ -326,7 +338,7 @@ public class GameView {
 
     public void plantBomb(Bomb bomb) {
         if (bomb == null) {
-            System.out.println("No bomb");
+            logger.log(Level.WARNING, "No bomb");
             return;
         }
         ImageView bombView = new ImageView(bombImage);
@@ -338,38 +350,10 @@ public class GameView {
 
     public void blastBomb(Bomb bomb, ArrayList<Coordinates> blastWave) {
         if (bomb == null) {
-            System.out.println("No bomb");
+            logger.log(Level.WARNING, "No bomb");
             return;
         }
-        ImageView blastView;
-        /* Try to replace it with more "smart" code
-        ImageView bombView = bombSprites.get(bomb.getId());
-        grid.getChildren().remove(bombView);
-        bombSprites.remove(bomb.getId());
-        // Find a specific bomb, remove it from the screen and from the list
-        ImageView blastView = new ImageView(blastImage[2][2]);
-        blastView.setFitWidth(TILE_SIZE);
-        blastView.setFitHeight(TILE_SIZE);
-        grid.getChildren().removeIf(node ->
-                GridPane.getColumnIndex(node) != null && GridPane.getRowIndex(node) != null &&
-                GridPane.getColumnIndex(node) == bomb.getCoordinates().getX() &&
-                GridPane.getRowIndex(node) == bomb.getCoordinates().getY()
-            );
-        grid.add(blastView, bomb.getCoordinates().getX(), bomb.getCoordinates().getY());
-        for (Coordinates blast : blastWave) {
-            grid.getChildren().removeIf(node ->
-                GridPane.getColumnIndex(node) != null && GridPane.getRowIndex(node) != null &&
-                GridPane.getColumnIndex(node) == blast.getX() &&
-                GridPane.getRowIndex(node) == blast.getY()
-            );
-            int blastX = blast.getX()-bomb.getCoordinates().getX()+2;
-            int blastY = blast.getY()-bomb.getCoordinates().getY()+2;
-            //System.out.println(blastX +", " + blastY);
-            blastView = new ImageView(blastImage[blastX][blastY]);
-            blastView.setFitWidth(TILE_SIZE);
-            blastView.setFitHeight(TILE_SIZE);
-            grid.add(blastView, blast.getX(), blast.getY());
-            */
+
         int centerX = bomb.getCoordinates().getX();
         int centerY = bomb.getCoordinates().getY();
         int minX = centerX;
@@ -407,7 +391,6 @@ public class GameView {
         // Do not draw ray if it is close to a wall
 
         if ((centerX - minX) > 1 ) {
-            System.out.println("centerX=" + centerX + " minX=" + minX);
         for (int x = (centerX-1); x > minX; x--) {
             drawBlast(blastLeftRay, x, centerY);
         } }
@@ -454,6 +437,10 @@ public class GameView {
                 modView.setImage(modPlusBomb);
             case ModifierType.SPEED_UP ->
                 modView.setImage(modSpeedUp);
+            case ModifierType.PLUS_RANGE ->
+                modView.setImage(modPlusRange);
+            case ModifierType.REVERSE_CONTROLS ->
+                modView.setImage(modReverseCotrols);
             }
         modifierSprites.put(mod.getId(), modView);
         // We add new modifier to a list, so we know what to remove after
@@ -465,6 +452,10 @@ public class GameView {
         ImageView modView = modifierSprites.get(mod.getId());
         grid.getChildren().remove(modView);
         // We just remove a sprite from a game board. No additional actions is required
+        ImageView floorView = new ImageView(floorImage);
+        floorView.setFitHeight(TILE_SIZE);
+        floorView.setFitWidth(TILE_SIZE);
+        grid.add(floorView, mod.getCoordinates().getX(), mod.getCoordinates().getY());
     }
 
     private void handleKeyPress(KeyEvent event) {
@@ -475,12 +466,8 @@ public class GameView {
         pressedKeys.remove(event.getCode());
     }
     
-    public void gameOver() {
-        
-    }
-    
     public void killPlayer(Player player) {
-        System.out.println("Player with id " + player.getId() + " is killed!");
+        logger.log(Level.INFO, "Player with id {0} is killed!", player.getId());
         ImageView playerView = playerSprites.get(player.getId());
         grid.getChildren().remove(playerView);
         // Remove player sprite from grid
@@ -491,10 +478,5 @@ public class GameView {
     public void gameOver(String msg) {
         Platform.runLater(() -> new GameOverWindow(msg));
     }
-    
-    public void playerSpeed(Player player, int speed) {
-        playerSpeed.replace(player.getId(), (int)((float)playerDefaultSpeed/speed*100));
-        // I use dobule type conversion. It looks weird, but works good. 
-        // I just want to set speed in %
-    }
+
 }
