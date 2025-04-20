@@ -27,6 +27,7 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.logging.*;
 import javafx.animation.AnimationTimer;
+import javafx.scene.media.AudioClip;
 
 // Package import
 import cyberpro.game.controller.ControllerInterface;
@@ -70,9 +71,16 @@ public class GameView {
     private final Image modReverseCotrols = new Image(getClass().getResourceAsStream("modReverseControls.png"));
     // End load sprites
     // Begin load blast sprites
-    // Image[][] blastImage = new Image[5][5];
     private Image blastCenter, blastLeftTip, blastRightTip, blastBottomTip, blastTopTip;
     private Image blastLeftRay, blastRightRay, blastTopRay, blastBottomRay;
+    
+    // Begin load sound files
+    private static final AudioClip BLAST_BOMB_SOUND = new AudioClip(
+        GameView.class.getResource("music/sndBlastBomb.wav").toExternalForm()
+    );
+    private static final AudioClip PLANT_BOMB_SOUND = new AudioClip(
+        GameView.class.getResource("music/sndPlantBomb.wav").toExternalForm()
+    );
     
 
     // Begin declare map lists for player, modifier and bomb sprites
@@ -83,12 +91,13 @@ public class GameView {
     // End declare map lists for player and bomb sprites
     
     private Map<String, Boolean> playerOnMove = new HashMap<>();
-    private Map<String, Integer> playerSpeed = new HashMap<>();
 
     private final Set<KeyCode> pressedKeys = new HashSet<>();
 
-    private long lastUpdate = 0; // Tracks the last update time
-    private static final long MOVEMENT_DELAY = 50_000_000; // 50ms in nanoseconds
+    private long lastUpdateP1 = 0; // Tracks the last update time
+    private long lastUpdateP2 = 0;
+    
+    private final long MOVEMENT_DELAY = 50_000_000; // 50ms in nanoseconds 
 
     private int gridWidth;
     private int gridHeight;
@@ -107,22 +116,31 @@ public class GameView {
         grid.setFocusTraversable(true); // Устанавливаем фокус для ввода
 
         // Убираем отступы и промежутки
-        grid.setPadding(new Insets(0)); // Без отступов
+        grid.setPadding(new Insets(0)); // GridPane nodes without padding
         grid.setHgap(0); // Без промежутков между колонками
         grid.setVgap(0); // Без промежутков между строками
 
         gridWidth = gridHeight = controller.getBoard().getSize();
+        logger.log(Level.WARNING, "Board size is {0}", gridWidth);
         ArrayList<Player> players;
 
         int sceneSize = TILE_SIZE * gridWidth; // или gridHeight, если нужна квадратная область
         Scene scene = new Scene(grid, sceneSize, sceneSize);
         grid.setOnKeyPressed(this::handleKeyPress);
         grid.setOnKeyReleased(this::handleKeyRelease);
-
-        AnimationTimer timer = new AnimationTimer() {
+        
+        AnimationTimer timerP1 = new AnimationTimer() {
             @Override
             public void handle(long now) {
-                if (now - lastUpdate >= MOVEMENT_DELAY) {
+                
+                int playerSpeed = controller.getPlayers().getFirst().getSpeed();
+                long dynamicDelay = switch(playerSpeed) {
+                    case 100 -> MOVEMENT_DELAY;
+                    case 101 -> 25_000_000;
+                    default -> MOVEMENT_DELAY;
+                };
+
+                if (now - lastUpdateP1 >= dynamicDelay) {
                     if ( (pressedKeys.contains(KeyCode.UP) ) && (Objects.equals(playerOnMove.get(controller.getPlayerIdByNumber(1)), Boolean.FALSE))) {
                         controller.playerMoveUp(controller.getPlayerIdByNumber(1));
                     }
@@ -141,6 +159,25 @@ public class GameView {
                     if ( ( pressedKeys.contains(KeyCode.O) ) && (Objects.equals(playerOnMove.get(controller.getPlayerIdByNumber(1)), Boolean.FALSE))) {
                         controller.playerRemoteBombExplode(controller.getPlayerIdByNumber(1));
                     }
+                // Update the last update time
+                lastUpdateP1 = now; 
+                } 
+            }
+        };
+        timerP1.start();
+
+        AnimationTimer timerP2 = new AnimationTimer() {
+            @Override
+            public void handle(long now) {
+                int playerSpeed = controller.getPlayers().getLast().getSpeed();
+                
+                long dynamicDelay = switch(playerSpeed) {
+                    case 100 -> MOVEMENT_DELAY;
+                    case 101 -> 25_000_000;
+                    default -> MOVEMENT_DELAY;
+                };
+                
+                if (now - lastUpdateP2 >= dynamicDelay) {
                     if ( (pressedKeys.contains(KeyCode.W) ) &&  (Objects.equals(playerOnMove.get(controller.getPlayerIdByNumber(2)), Boolean.FALSE))) {
                         controller.playerMoveUp(controller.getPlayerIdByNumber(2));
                     }
@@ -156,29 +193,19 @@ public class GameView {
                     if (( pressedKeys.contains(KeyCode.G) ) &&  (Objects.equals(playerOnMove.get(controller.getPlayerIdByNumber(2)), Boolean.FALSE))) {
                         controller.playerPlantBomb(controller.getPlayerIdByNumber(2));
                     }
-                    if (pressedKeys.contains(KeyCode.Q)) {
-                        // this.killPlayer(controller.getPlayers().getFirst());
-                        Player player = controller.getPlayers().getFirst();
-                        killPlayer(player);
-                    }
-                    if (pressedKeys.contains(KeyCode.M)) {
-                        // GameOverWindow gameOver = new GameOverWindow("Game over");
-                        // Platform.runLater(() -> new GameOverWindow("You lose!"));
-                        gameOver("Game over");
-                    }
                     // Update the last update time
-                    lastUpdate = now;
+                    lastUpdateP2 = now;
                 }
             }
         };
-        timer.start();
+        timerP2.start();
 
         stage.setScene(scene);
         stage.setTitle("Bombermen");
         stage.show();
 
         stage.setOnCloseRequest(event -> {
-            System.out.println("Stage is closing...");
+            logger.log(Level.INFO, "Stage is closing...");
             System.exit(0); // <-- Close the app with all threads
         });
 
@@ -207,7 +234,6 @@ public class GameView {
             deadPlayerSprites.put(playerID, deadPlayerView);
             playerOnMove.put(controller.getPlayerIdByNumber(counter), Boolean.FALSE);
             counter++;
-            playerSpeed.put(playerID, playerDefaultSpeed);
             // Set default speed for each player in ms
         }
         // All player's sprites are in playerSprites list
@@ -295,7 +321,7 @@ public class GameView {
 
     public void moveSprite(Coordinates oldCoord, Coordinates newCoord, Player player) {
         ImageView playerView = playerSprites.get(player.getId());
-        int movementSpeed = 150; // Speed of movement im ms
+        int movementSpeed; // Speed of movement im ms
         
         if (playerView == null) {
             return;
@@ -317,12 +343,18 @@ public class GameView {
         int deltaX = (newX - oldX) * TILE_SIZE;
         int deltaY = (newY - oldY) * TILE_SIZE;
         
-        movementSpeed = movementSpeed*100 / player.getSpeed();
+        System.out.println("Player spped " + player.getSpeed());
+        movementSpeed = switch(player.getSpeed()) {
+                    case 100 -> 150;
+                    case 101 -> 100;
+                    default -> 150;
+                };
         // Greater speed --> smaller transition delay 
-        logger.log(Level.INFO, "Movement delay is {1} ms", movementSpeed);
+        logger.log(Level.INFO, "Movement delay is {0} ms", movementSpeed);
         
         TranslateTransition transition = new TranslateTransition(Duration.millis(movementSpeed), playerView);
         transition.setByX(deltaX);
+        
         transition.setByY(deltaY);
         transition.setOnFinished(e -> {
             playerView.setTranslateX(0);
@@ -341,6 +373,9 @@ public class GameView {
             logger.log(Level.WARNING, "No bomb");
             return;
         }
+        // Play a sound before plant a bomb on the board
+        PLANT_BOMB_SOUND.setVolume(0.6);
+        PLANT_BOMB_SOUND.play();
         ImageView bombView = new ImageView(bombImage);
         bombView.setFitWidth(TILE_SIZE);
         bombView.setFitHeight(TILE_SIZE);
@@ -353,7 +388,10 @@ public class GameView {
             logger.log(Level.WARNING, "No bomb");
             return;
         }
-
+        // Play blast sound before update the view
+        BLAST_BOMB_SOUND.setVolume(0.8);
+        BLAST_BOMB_SOUND.play(); 
+        
         int centerX = bomb.getCoordinates().getX();
         int centerY = bomb.getCoordinates().getY();
         int minX = centerX;
@@ -375,14 +413,6 @@ public class GameView {
         topRay = maxY - centerY;
         bottomRay = centerY - minY;
         // Now we have a ray length for every direction
-        for (Coordinates blast : blastWave) {
-            grid.getChildren().removeIf(node ->
-                GridPane.getColumnIndex(node) != null && GridPane.getRowIndex(node) != null &&
-                GridPane.getColumnIndex(node) == blast.getX() &&
-                GridPane.getRowIndex(node) == blast.getY()
-            );
-        }
-        // Clean all tiles under the blast wave to avoid nested node error
         drawBlast(blastCenter, centerX, centerY);
         if (minX < centerX) { drawBlast(blastLeftTip, minX, centerY); }
         if (maxX > centerX) { drawBlast(blastRightTip, maxX, centerY); }
@@ -420,11 +450,11 @@ public class GameView {
     
     public void plantMod(Modifier mod) {
         Coordinates modCoord = mod.getCoordinates();
-        grid.getChildren().removeIf(node ->
+        /*grid.getChildren().removeIf(node ->
                 GridPane.getColumnIndex(node) != null && GridPane.getRowIndex(node) != null &&
                 GridPane.getColumnIndex(node) == modCoord.getX() &&
                 GridPane.getRowIndex(node) == modCoord.getY()
-            );
+            ); */
         // Remove previous tile under modifer
         ModifierType type = mod.getType();
         ImageView modView = new ImageView();
