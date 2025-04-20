@@ -9,5 +9,5 @@ package cyberpro.game.view;
  * @author mikhail
  */
 public enum TileType {
-    FLOOR, BRICK_WALL, CONCRETE_WALL, PLAYER, ENEMY, EXPLOSION, RAY_HORIZONTAL, RAY_VERTICAL, RAY
+    FLOOR, BRICK_WALL, CONCRETE_WALL, RAY
 }

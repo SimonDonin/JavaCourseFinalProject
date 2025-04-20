@@ -1,5 +1,6 @@
 package cyberpro.game.model;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Set;
 
@@ -9,7 +10,7 @@ enum Colors {
 	YELLOW, GREEN, PURPLE
 };
 
-public class Player {
+public class Player implements Serializable {
 
 	private String id;
 	private static int counter = 0;
@@ -20,6 +21,9 @@ public class Player {
 	private int speed;
 	private Colors color;
 	private ArrayList<Modifier> playerModifiers;
+	private int winsCount = 0;
+	private int lossesCount = 0;
+	private int drawsCount = 0;
 	private static final int DEFAULT_PLAYER_SPEED = 1;
 
 	public Player(String name, Coordinates coordinates) {
@@ -35,6 +39,14 @@ public class Player {
 
 	public String getId() {
 		return id;
+	}
+
+	public static int getCounter() {
+		return counter;
+	}
+
+	public static void setCounter(int counter) {
+		Player.counter = counter;
 	}
 
 	public String getName() {
@@ -93,7 +105,8 @@ public class Player {
 	@Override
 	public String toString() {
 		return "Player " + name + ":" + "\n\tcoordinates: [" + coordinates.getX() + ", " + coordinates.getY() + "]"
-				+ "\n\tspeed: " + speed + "\n\tcolor: " + color + "\n\t" + playerModifiers.toString() + "\n";
+				+ "\n\tspeed: " + speed + "\n\tcolor: " + color + "\n\t" + playerModifiers.toString()
+				+ "\n\t Score: wins = " + winsCount + ", losses  = " + lossesCount + ", draws = " + drawsCount + "\n";
 	}
 
 	public boolean kill() {
@@ -144,6 +157,18 @@ public class Player {
 			speedInModifiers = 100;
 		}
 		setSpeed(DEFAULT_PLAYER_SPEED + speedInModifiers);
+	}
+
+	public void win() {
+		winsCount++;
+	}
+
+	public void loose() {
+		lossesCount++;
+	}
+
+	public void draw() {
+		drawsCount++;
 	}
 
 }
