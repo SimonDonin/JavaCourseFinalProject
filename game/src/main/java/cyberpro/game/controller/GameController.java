@@ -5,6 +5,7 @@ import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
+import java.util.Scanner;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -12,23 +13,29 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
+import javafx.application.Application;
 // This is starter for JavaFX window
 import javafx.application.Platform;
+import javafx.scene.chart.PieChart.Data;
 import javafx.stage.Stage;
 import cyberpro.game.model.*;
+import cyberpro.game.service.DataHandler;
 import cyberpro.game.service.FileResourcesImporter;
 import cyberpro.game.view.GameView;
+import cyberpro.game.view.MainMenu;
 import cyberpro.game.view.TileType;
-import cyberpro.game.model.Modifier;
 
+import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 
 public class GameController implements ControllerInterface {
 	private static final String DEFAULT_LEVEL = "/cyberpro/game/model/level1.txt";
+	private String level = DEFAULT_LEVEL;
 	private static BlockingQueue<String> commandQueue = new LinkedBlockingQueue<>();
 	private static final int DEFAULT_TIME_TILL_EXPLOSION = 4;
 	private static final TileType[] TILES_CANT_WALK_THROUGH = { TileType.CONCRETE_WALL, TileType.BRICK_WALL };
-	private static final TileType[] TILES_EXPLOSIBLE = { TileType.FLOOR, TileType.EXPLOSION, TileType.BRICK_WALL };
+	private static final TileType[] TILES_EXPLOSIBLE = { TileType.FLOOR, TileType.BRICK_WALL };
 	private static final TileType[] TILES_DESTRUCTIBLE = { TileType.BRICK_WALL };
 	private static final int DEFAULT_MAX_BOMBS_ACTIVE = 1;
 	private static final int GAME_OVER_TIME = 5;
@@ -36,10 +43,8 @@ public class GameController implements ControllerInterface {
 	private ScheduledExecutorService schedulerForRaysOff = Executors.newScheduledThreadPool(10);
 	private ScheduledExecutorService schedulerForGameOver = Executors.newScheduledThreadPool(1);
 	private ScheduledExecutorService schedulerForModifiersOff = Executors.newScheduledThreadPool(10);
+	private ArrayList<Player> playersSet = new ArrayList<>();
 
-	// You a checkin tiles with is possible to walk abowe. But EXPLOSION, RAY
-
-	// It is a sprite, not a tile. We will never have these tiles on board.
 	private GameView gameView;
 	private Game game;
 
@@ -51,23 +56,43 @@ public class GameController implements ControllerInterface {
 		return game.getBoard();
 	}
 
-	// it is where users define their players and choose a level to play
+	// Main menu with Players customization and level selection
 	public void mainMenu() throws IOException {
+		// Calling startViewMenu,
+		// filling out the Players' attributes and the level,
+		// saving a players set
 
-		// initialization
-		// File
+		// getting a players list
+		Player player1 = new Player("Player1", new Coordinates(4, 4));
+		Player player2 = new Player("Player2", new Coordinates(2, 6));
+		playersSet.add(player1);
+		playersSet.add(player2);
+
+		// should have an option for starting a new players set
+		// or loading another one to play
+		// for this - printing existing sets' players info and stats
+		// and suggesting to choose 1 set for loading
+		// saving an existing one choose and load a set
+
+		// printing the players stats if it's not empty
+
+		// Start the Main Menu
+		//Application.launch(MainMenu.class);
+		//System.out.println("first window opened");
+
+		// starting a game with playersSet and board previously specified
+		 startGame();
+
+	}
+
+	// it is where users define their players and choose a level to play
+	@Override
+	public void startGame() throws FileNotFoundException, IOException {
+		// getting a board
 		FileResourcesImporter fileResourcesImporter = new FileResourcesImporter();
-
-		// create a game
-		game = new Game("myGame", fileResourcesImporter.importLevelIntoBoard("level", DEFAULT_LEVEL));
-
-		System.out.println("Our random modifier = " + uncoverModifier(new Coordinates(0, 0)));
-		// specify players in the Start menu and create them
-		game.addPlayer(new Player("Player1", new Coordinates(4, 4)));
-		game.addPlayer(new Player("Player2", new Coordinates(2, 6)));
-
+		Board board = fileResourcesImporter.importLevelIntoBoard("level", DEFAULT_LEVEL);
+		game = new Game("Level", playersSet, board);
 		gameProcess();
-
 	}
 
 	private void gameProcess() {
@@ -99,6 +124,30 @@ public class GameController implements ControllerInterface {
 			}
 		}).start(); // Retrieving a command from the queue (waits if it's empty)
 
+		// running a thread for testing
+		new Thread(() -> {
+			Scanner scan = new Scanner(System.in);
+			String input = "";
+			while (true) {
+				input = scan.next();
+				// serialization testing
+				if (input.toUpperCase().charAt(0) == ('Z')) {
+					System.out.println("Serializing the players list...");
+					DataHandler.serializePlayersSet(game.getPlayers());
+					DataHandler.saveCounterIntoFile();
+				}
+				if (input.toUpperCase().charAt(0) == ('X')) {
+					System.out.println("Deserializing the players list...");
+					System.out.println(DataHandler.deserializePlayersSet(new File("P1P2.ser")));
+					DataHandler.loadCountersFromFile();
+				}
+				if (input.toUpperCase().charAt(0) == ('O')) {
+					System.out.println("Game is over, returning to the main menu");
+
+				}
+				// gameover testing
+			}
+		}).start(); // Retrieving a command from the queue (waits if it's empty)
 	}
 
 	// processes a command from a Player
@@ -270,7 +319,6 @@ public class GameController implements ControllerInterface {
 		commandQueue.add("E" + playerId);
 	}
 
-	
 	@Override
 	public String getPlayerIdByNumber(int playerNumber) {
 		if (game.getPlayers().isEmpty()) {
@@ -344,25 +392,25 @@ public class GameController implements ControllerInterface {
 		if (playerFound.findModifierByType(ModifierType.REMOTE_EXPLOSION) != null) {
 			remoteExplosion = true;
 		}
-		
+
 		// creating a bomb and adding to the bombs list
 		Bomb newBomb = new Bomb(playerId,
-				new Coordinates(playerFound.getCoordinates().getX(), playerFound.getCoordinates().getY()), remoteExplosion,
-				explosionTime);
+				new Coordinates(playerFound.getCoordinates().getX(), playerFound.getCoordinates().getY()),
+				remoteExplosion, explosionTime);
 		game.addBomb(newBomb);
 
 		// setting up a timer for bomb to change its look
 		ScheduledFuture taskLook = schedulerForExplosion.schedule(() -> {
-					Platform.runLater(() -> {
-						gameView.plantBomb(newBomb);
-					});
-					System.out.println("Requested the bomb to change its look");}, DEFAULT_TIME_TILL_EXPLOSION / 2,
-						TimeUnit.SECONDS);
+			Platform.runLater(() -> {
+				gameView.plantBomb(newBomb);
+			});
+			System.out.println("Requested the bomb to change its look");
+		}, DEFAULT_TIME_TILL_EXPLOSION / 2, TimeUnit.SECONDS);
 		game.putExplosionTaskByBombId(newBomb.getId(), taskLook);
-		
+
 		// setting up a timer for bomb to explode
-		ScheduledFuture taskExplode = schedulerForExplosion.schedule(() -> explodeBomb(newBomb.getId()), DEFAULT_TIME_TILL_EXPLOSION,
-				TimeUnit.SECONDS);
+		ScheduledFuture taskExplode = schedulerForExplosion.schedule(() -> explodeBomb(newBomb.getId()),
+				DEFAULT_TIME_TILL_EXPLOSION, TimeUnit.SECONDS);
 		game.putExplosionTaskByBombId(newBomb.getId(), taskExplode);
 
 		System.out.println("Player " + playerId + " planted a bomb");
@@ -378,19 +426,21 @@ public class GameController implements ControllerInterface {
 		// validation if a player isn't found by Id
 		if (playerFound == null)
 			return;
-		// searching for all the player's active bombs able to detonate remotely and detonate them immediately
+		// searching for all the player's active bombs able to detonate remotely and
+		// detonate them immediately
 		for (Bomb bomb : game.getBombs()) {
 			if (bomb.getPlayerId().equalsIgnoreCase(playerId) && bomb.isDistantExplosion()) {
 				// canceling the scheduled tasks for future explosion
 				ScheduledFuture task = game.extractExplosionTaskByBombId(bomb.getId());
-				if (task == null) continue;
+				if (task == null)
+					continue;
 				task.cancel(true);
 				// requesting to immediately explode
 				explodeBomb(bomb.getId());
 			}
 		}
 	}
-	
+
 	public void explodeBomb(String bombId) {
 		Bomb bombFound = game.findBombById(bombId);
 		// validation if a bomb isn't found by Id
@@ -660,21 +710,37 @@ public class GameController implements ControllerInterface {
 	private void gameOver() {
 		if (!game.getPlayers().get(0).isAlive() && !game.getPlayers().get(1).isAlive()) {
 			gameView.gameOver("DRAW"); // add a DRAW message
+			game.getPlayers().get(0).draw();
+			game.getPlayers().get(1).draw();
 			System.out.println("Sending a request for the DRAW message");
+			game.printPlayers();
 			return;
 		}
 		if (!game.getPlayers().get(0).isAlive() && game.getPlayers().get(1).isAlive()) {
-			gameView.gameOver("Player 2 wins"); // add a Player 2 wins message message
+			gameView.gameOver("Player 2 wins"); // add a Player 2 wins message
+			game.getPlayers().get(0).win();
+			game.getPlayers().get(1).loose();
 			System.out.println("Sending a request for the Player 1 WINS message");
+			game.printPlayers();
 			return;
 		}
 		if (game.getPlayers().get(0).isAlive() && !game.getPlayers().get(1).isAlive()) {
 			gameView.gameOver("Player 1 wins"); // add a Player 1 wins message
+			game.getPlayers().get(1).win();
+			game.getPlayers().get(0).loose();
 			System.out.println("Sending a request for the Player 2 WINS message");
+			game.printPlayers();
 			return;
 		}
 		System.out.println("Noone wins");
 		return;
+	}
+
+	// returns to the Controller with players and level for the next game
+	@Override
+	public void specifyPlayersSetAndLevel(ArrayList<Player> playersSet, String level) {
+		this.playersSet = playersSet;
+		this.level = level;
 
 	}
 
@@ -737,10 +803,10 @@ public class GameController implements ControllerInterface {
 
 		game.removeModifier(modifier);
 		// removing the modifier in the view
-				Platform.runLater(() -> {
-					System.err.println("Sending requiest to gameView to remove the modifier");
-					gameView.removeMod(modifier);
-				});
+		Platform.runLater(() -> {
+			System.err.println("Sending requiest to gameView to remove the modifier");
+			gameView.removeMod(modifier);
+		});
 		return true;
 	}
 
@@ -752,4 +818,49 @@ public class GameController implements ControllerInterface {
 			}
 		}
 	}
+
+	// sets up a playersSet to play next
+	@Override
+	public void setPlayers(ArrayList<Player> players) {
+		playersSet = players;
+	}
+
+	@Override
+	public void gameOverComplete() {
+		// TBD
+	}
+
+	@Override
+	public void pauseOn() {
+		// TBD
+	}
+
+	@Override
+	public void pauseOff() {
+		// TBD
+	}
+
+	// sets up a level to play next
+	@Override
+	public void setLevel(String levelFromGUI) {
+		level = levelFromGUI;
+	}
+
+	// returns all previously saved playersSets from local files in the ArrayList
+	@Override
+	public ArrayList<ArrayList<Player>> getPlayersSets() {
+		ArrayList<ArrayList<Player>> playersSets = new ArrayList<ArrayList<Player>>();
+		playersSets = DataHandler.deserializePlayersSets();
+		return playersSets;
+	}
+
+	// returns Id for the playersSet;
+	public static String getPlayersSetId(ArrayList<Player> playersSet) {
+		StringBuilder str = new StringBuilder();
+		for (Player player : playersSet) {
+			str.append(player.getId());
+		}
+		return str + "";
+	}
+
 }

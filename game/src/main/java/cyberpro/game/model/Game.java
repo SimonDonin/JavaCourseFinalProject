@@ -14,12 +14,10 @@ import cyberpro.game.view.TileType;
 import java.io.FileNotFoundException;
 
 public class Game {
-	private static final int DEFAULT_PLAYERS_NUMBER = 2;
 	private static final String DEFAULT_PLAYER1_NAME = "Player 1";
 	private static final String DEFAULT_PLAYER2_NAME = "Player 2";
 
 	private String name;
-	private int playersNumber;
 	private Board board;
 	private ArrayList<Player> players;
 	private ArrayList<Bomb> bombs;
@@ -32,15 +30,13 @@ public class Game {
 	// ArrayList<>(); bombs = new ArrayList<>(); modifiers = new ArrayList<>();
 	// }
 
-	public Game(String name, Board board) {
+	public Game(String name, ArrayList<Player> players, Board board) {
 		this.name = name;
-		this.playersNumber = DEFAULT_PLAYERS_NUMBER;
+		this.players = players;
 		this.board = board;
 		bombs = new ArrayList<>();
 		bombsExploded = new ArrayList<>();
 		modifiers = new ArrayList<>();
-		players = new ArrayList<>();
-
 	}
 
 	public ArrayList<Player> getPlayers() {
@@ -190,7 +186,7 @@ public class Game {
 	@Override
 	public String toString() {
 		// TODO Auto-generated method stub
-		return "Game " + name + " with " + playersNumber + " players on the " + board.getName() + " board" + "\nBOARD"
+		return "Game " + name + " with " + players.size() + " players on the " + board.getName() + " board" + "\nBOARD"
 				+ "\n" + board.toString() + "\nPLAYERS" + "\n" + players.toString() + "\nBOMBS" + "\n"
 				+ bombs.toString() + "\nMODIFIERS" + "\n" + modifiers.toString();
 	}
@@ -231,6 +227,12 @@ public class Game {
 		this.bombsExploded.remove(bomb);
 		return true;
 		
+	}
+	
+	public void printPlayers() {
+		for (Player player : players) {
+			System.out.println(player);
+		}
 	}
 
 }
