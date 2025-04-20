@@ -27,6 +27,7 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.logging.*;
 import javafx.animation.AnimationTimer;
+import javafx.scene.media.AudioClip;
 
 // Package import
 import cyberpro.game.controller.ControllerInterface;
@@ -73,6 +74,14 @@ public class GameView {
     private Image blastCenter, blastLeftTip, blastRightTip, blastBottomTip, blastTopTip;
     private Image blastLeftRay, blastRightRay, blastTopRay, blastBottomRay;
     
+    // Begin load sound files
+    private static final AudioClip BLAST_BOMB_SOUND = new AudioClip(
+        GameView.class.getResource("music/sndBlastBomb.wav").toExternalForm()
+    );
+    private static final AudioClip PLANT_BOMB_SOUND = new AudioClip(
+        GameView.class.getResource("music/sndPlantBomb.wav").toExternalForm()
+    );
+    
 
     // Begin declare map lists for player, modifier and bomb sprites
     private Map<String, ImageView> playerSprites = new HashMap<>();
@@ -107,11 +116,12 @@ public class GameView {
         grid.setFocusTraversable(true); // Устанавливаем фокус для ввода
 
         // Убираем отступы и промежутки
-        grid.setPadding(new Insets(0)); // Без отступов
+        grid.setPadding(new Insets(0)); // GridPane nodes without padding
         grid.setHgap(0); // Без промежутков между колонками
         grid.setVgap(0); // Без промежутков между строками
 
         gridWidth = gridHeight = controller.getBoard().getSize();
+        logger.log(Level.WARNING, "Board size is {0}", gridWidth);
         ArrayList<Player> players;
 
         int sceneSize = TILE_SIZE * gridWidth; // или gridHeight, если нужна квадратная область
@@ -363,6 +373,9 @@ public class GameView {
             logger.log(Level.WARNING, "No bomb");
             return;
         }
+        // Play a sound before plant a bomb on the board
+        PLANT_BOMB_SOUND.setVolume(0.6);
+        PLANT_BOMB_SOUND.play();
         ImageView bombView = new ImageView(bombImage);
         bombView.setFitWidth(TILE_SIZE);
         bombView.setFitHeight(TILE_SIZE);
@@ -375,7 +388,10 @@ public class GameView {
             logger.log(Level.WARNING, "No bomb");
             return;
         }
-
+        // Play blast sound before update the view
+        BLAST_BOMB_SOUND.setVolume(0.8);
+        BLAST_BOMB_SOUND.play(); 
+        
         int centerX = bomb.getCoordinates().getX();
         int centerY = bomb.getCoordinates().getY();
         int minX = centerX;
