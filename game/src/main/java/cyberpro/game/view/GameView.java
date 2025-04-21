@@ -84,7 +84,7 @@ public class GameView {
         GameView.class.getResource("music/sndBlastBomb.wav").toExternalForm()
     );
     private static final AudioClip PLANT_BOMB_SOUND = new AudioClip(
-        GameView.class.getResource("music/sndPlantBomb.wav").toExternalForm()
+        GameView.class.getResource("music/sndPlantBomb.mp3").toExternalForm()
     );
     
 
