@@ -172,9 +172,9 @@ public class GameView {
                     }
                     if (pressedKeys.contains(KeyCode.P)) {
                         if (isPaused=false) {
-                            // controller.pauseOn();
+                            controller.pauseOn();
                         } else {
-                            // controller.pauseOff();
+                            controller.pauseOff();
                         }
                         // Make a 100 ms pause to opress false detection of keypresses
                         PauseTransition pause = new PauseTransition(Duration.millis(100));
