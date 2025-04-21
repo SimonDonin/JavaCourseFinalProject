@@ -21,6 +21,7 @@ import cyberpro.game.service.DataHandler;
 import cyberpro.game.service.FileResourcesImporter;
 import cyberpro.game.view.GameView;
 import cyberpro.game.view.TileType;
+import cyberpro.game.view.MainMenu;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -97,13 +98,14 @@ public class GameController implements ControllerInterface {
 		// Start the Main Menu
 		// Application.launch(MainMenu.class);
 		// System.out.println("first window opened");
-//		Platform.startup(() -> {
-//			Stage stage = new Stage();
-//			mainMenu = new MainMenu(stage, this);
-//		});
+		Platform.startup(() -> {
+			Stage stage = new Stage();
+                        MainMenu mainMenu = new MainMenu(stage, this);
+			// mainMenu = new MainMenu(stage, this);
+		});
 
 		// starting a game with playersSet and board previously specified
-		startGame();
+//		startGame();
 
 	}
 
@@ -120,7 +122,7 @@ public class GameController implements ControllerInterface {
 	private void gameProcess() {
 
 		// GameView initialization
-		Platform.startup(() -> {
+		Platform.runLater(() -> {
 			Stage stage = new Stage();
 			gameView = new GameView(stage, this);
 		});
