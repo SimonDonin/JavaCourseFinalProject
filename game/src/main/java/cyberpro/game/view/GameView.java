@@ -16,8 +16,12 @@ import javafx.scene.layout.GridPane;
 import javafx.scene.input.KeyCode;
 import javafx.stage.Stage;
 import javafx.application.Platform;
+import javafx.scene.media.Media;
+import javafx.scene.media.MediaPlayer;
+import java.net.URL;
 // Animation libs
 import javafx.animation.TranslateTransition;
+import javafx.animation.PauseTransition;
 import javafx.util.Duration;
 // End animation libs
 import java.util.HashMap;
@@ -55,6 +59,7 @@ public class GameView {
     // Create GridPane object to display all graphical objects.
     private TileType[][] gameBoard;
     // Game board array. We have to recive it from a Controller
+    private boolean isPaused;
     
     // Begin load sprites
     private final Image playerOneImage = new Image(getClass().getResourceAsStream("Character1.png"));
@@ -90,22 +95,28 @@ public class GameView {
     private Map<String, ImageView> modifierSprites = new HashMap<>();
     // End declare map lists for player and bomb sprites
     
+    // Declare a mediaplayer for background music
+    private MediaPlayer mediaPlayer;
+    
     private Map<String, Boolean> playerOnMove = new HashMap<>();
 
     private final Set<KeyCode> pressedKeys = new HashSet<>();
 
-    private long lastUpdateP1 = 0; // Tracks the last update time
+    // Tracks the last update time for keyboard request of each player
+    private long lastUpdateP1 = 0; 
     private long lastUpdateP2 = 0;
-    
     private final long MOVEMENT_DELAY = 50_000_000; // 50ms in nanoseconds 
 
+    // Shall be defined at model
     private int gridWidth;
     private int gridHeight;
-    // Shall be defined at model.
+    
     
     private int playerDefaultSpeed = 150;
 
     public GameView(Stage stage, ControllerInterface controller) {
+        ArrayList<Player> players;
+                
         logger.setLevel(Level.FINE);
         // Set Fine logging level for beta-testing. 
         // [TODO] Rise logging level to Level.WARRINGS for a final package
@@ -113,19 +124,19 @@ public class GameView {
         this.gameBoard = controller.getBoard().getCells(); // Get a link to the gameboard cells
 
         grid = new GridPane();
-        grid.setFocusTraversable(true); // Устанавливаем фокус для ввода
+        grid.setFocusTraversable(true); // Get keyboard input focus into a grid control
 
-        // Убираем отступы и промежутки
-        grid.setPadding(new Insets(0)); // GridPane nodes without padding
-        grid.setHgap(0); // Без промежутков между колонками
-        grid.setVgap(0); // Без промежутков между строками
+        // Removing spacing and padding
+        grid.setPadding(new Insets(0)); 
+        grid.setHgap(0); 
+        grid.setVgap(0); 
 
         gridWidth = gridHeight = controller.getBoard().getSize();
-        logger.log(Level.WARNING, "Board size is {0}", gridWidth);
-        ArrayList<Player> players;
+        logger.log(Level.INFO, "Board size is {0}", gridWidth);
 
         int sceneSize = TILE_SIZE * gridWidth; // или gridHeight, если нужна квадратная область
         Scene scene = new Scene(grid, sceneSize, sceneSize);
+        // Alternative keyboard input interface
         grid.setOnKeyPressed(this::handleKeyPress);
         grid.setOnKeyReleased(this::handleKeyRelease);
         
@@ -158,6 +169,21 @@ public class GameView {
                     }
                     if ( ( pressedKeys.contains(KeyCode.O) ) && (Objects.equals(playerOnMove.get(controller.getPlayerIdByNumber(1)), Boolean.FALSE))) {
                         controller.playerRemoteBombExplode(controller.getPlayerIdByNumber(1));
+                    }
+                    if (pressedKeys.contains(KeyCode.P)) {
+                        if (isPaused=false) {
+                            // controller.pauseOn();
+                        } else {
+                            // controller.pauseOff();
+                        }
+                        // Make a 100 ms pause to opress false detection of keypresses
+                        PauseTransition pause = new PauseTransition(Duration.millis(100));
+
+                        pause.setOnFinished(event -> {
+                            logger.log(Level.INFO, "Game paused/unpaused");
+                        });
+
+                        pause.play(); // Start pause timer
                     }
                 // Update the last update time
                 lastUpdateP1 = now; 
@@ -206,7 +232,7 @@ public class GameView {
 
         stage.setOnCloseRequest(event -> {
             logger.log(Level.INFO, "Stage is closing...");
-            System.exit(0); // <-- Close the app with all threads
+            System.exit(0); // Close the app with all threads
         });
 
         grid.requestFocus(); // Request focus to catch keypresses
@@ -252,6 +278,8 @@ public class GameView {
             logger.log(Level.SEVERE, "Can't load blast sprites. Check folder 'blast' inside a view folder");
             e.printStackTrace(); // or show an alert, log to file, etc.
         }
+        
+        playBackgroundMusic();
     }
     
     private Image loadImage(String path) throws FileNotFoundException {
@@ -335,7 +363,7 @@ public class GameView {
 
         // Check, if it is valid movement
         if (Math.abs(newX - oldX) > 1 || Math.abs(newY - oldY) > 1) {
-            System.err.printf("Unexpected move: from (%d, %d) to (%d, %d)%n", oldX, oldY, newX, newY);
+            logger.log(Level.WARNING, "Unexpected move: from ({0}, {1}) to ({2}, {3})", new Object[]{oldX, oldY, newX, newY});
             return;
         }
         playerOnMove.replace(player.getId(), Boolean.TRUE);
@@ -343,7 +371,7 @@ public class GameView {
         int deltaX = (newX - oldX) * TILE_SIZE;
         int deltaY = (newY - oldY) * TILE_SIZE;
         
-        System.out.println("Player spped " + player.getSpeed());
+        logger.log(Level.FINE, "Player spped {0}", player.getSpeed());
         movementSpeed = switch(player.getSpeed()) {
                     case 100 -> 150;
                     case 101 -> 100;
@@ -399,8 +427,6 @@ public class GameView {
         int minY = centerY;
         int maxY = centerY;
         
-        int leftRay, rightRay, topRay, bottomRay;
-        
         for (Coordinates c : blastWave) {
             if (c.getX() < minX) minX = c.getX();
             if (c.getX() > maxX) maxX = c.getX();
@@ -408,10 +434,7 @@ public class GameView {
             if (c.getY() > maxY) maxY = c.getY();
         }
         // Now we have min/max coordinates for blast wave
-        leftRay = centerX - minX;
-        rightRay = maxX - centerX;
-        topRay = maxY - centerY;
-        bottomRay = centerY - minY;
+
         // Now we have a ray length for every direction
         drawBlast(blastCenter, centerX, centerY);
         if (minX < centerX) { drawBlast(blastLeftTip, minX, centerY); }
@@ -450,14 +473,9 @@ public class GameView {
     
     public void plantMod(Modifier mod) {
         Coordinates modCoord = mod.getCoordinates();
-        /*grid.getChildren().removeIf(node ->
-                GridPane.getColumnIndex(node) != null && GridPane.getRowIndex(node) != null &&
-                GridPane.getColumnIndex(node) == modCoord.getX() &&
-                GridPane.getRowIndex(node) == modCoord.getY()
-            ); */
-        // Remove previous tile under modifer
         ModifierType type = mod.getType();
         ImageView modView = new ImageView();
+        
         modView.setFitWidth(TILE_SIZE);
         modView.setFitHeight(TILE_SIZE);
         switch (type) {
@@ -507,6 +525,34 @@ public class GameView {
     
     public void gameOver(String msg) {
         Platform.runLater(() -> new GameOverWindow(msg));
+    }
+    
+    public void playBackgroundMusic() {
+        try {
+            URL resource = getClass().getResource("music/gamemusic1.mp3"); // Path inside resources
+            Media media = new Media(resource.toExternalForm());
+            mediaPlayer = new MediaPlayer(media);
+            mediaPlayer.setCycleCount(MediaPlayer.INDEFINITE); // Loop forever
+            mediaPlayer.setVolume(0.5); // Set volume 0.0 - 1.0
+            mediaPlayer.play();
+            logger.log(Level.INFO, "Background music is playing.");
+        } catch (Exception e) {
+            logger.log(Level.WARNING, "Could not play music: {0}", e.getMessage());
+        }
+    }
+    
+    public void stopBackgroundMusic() {
+        if (mediaPlayer != null) {
+            mediaPlayer.stop();
+            logger.log(Level.INFO, "Background music is stopped.");
+        }
+    }
+    
+    public void pauseBackgroundMusic() {
+        if (mediaPlayer != null) {
+            mediaPlayer.pause();
+            logger.log(Level.INFO, "Background music is paused.");
+        }
     }
 
 }
