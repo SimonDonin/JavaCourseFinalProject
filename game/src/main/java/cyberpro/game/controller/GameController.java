@@ -13,24 +13,20 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
-import javafx.application.Application;
 // This is starter for JavaFX window
 import javafx.application.Platform;
-import javafx.scene.chart.PieChart.Data;
 import javafx.stage.Stage;
 import cyberpro.game.model.*;
 import cyberpro.game.service.DataHandler;
 import cyberpro.game.service.FileResourcesImporter;
 import cyberpro.game.view.GameView;
-import cyberpro.game.view.MainMenu;
 import cyberpro.game.view.TileType;
 
-import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 
 public class GameController implements ControllerInterface {
-	private static final String DEFAULT_LEVEL = "/cyberpro/game/model/level1.txt";
+	private static final String DEFAULT_LEVEL = "/cyberpro/game/model/level2.txt";
 	private String level = DEFAULT_LEVEL;
 	private static BlockingQueue<String> commandQueue = new LinkedBlockingQueue<>();
 	private static final int DEFAULT_TIME_TILL_EXPLOSION = 4;
@@ -56,6 +52,28 @@ public class GameController implements ControllerInterface {
 		return game.getBoard();
 	}
 
+	// the entrance point into the Controller
+	public void enterController() throws IOException {
+		initPlayersCounter();
+		initLastPlayersSet();
+		mainMenu();
+	}
+
+	// imports last Players Set and restores last max Player counter value
+	private void initLastPlayersSet() {
+		ArrayList<Player> playersSetImported = DataHandler.getLastPlayersSet();
+		if (playersSetImported == null) {
+			return;
+		}
+		DataHandler.loadCounterFromFile();
+		setPlayers(playersSetImported);
+	}
+
+	// reads all the serialized counterFiles and calculates maximum counter value
+	public void initPlayersCounter() {
+		// TBD
+	}
+
 	// Main menu with Players customization and level selection
 	public void mainMenu() throws IOException {
 		// Calling startViewMenu,
@@ -77,11 +95,15 @@ public class GameController implements ControllerInterface {
 		// printing the players stats if it's not empty
 
 		// Start the Main Menu
-		//Application.launch(MainMenu.class);
-		//System.out.println("first window opened");
+		// Application.launch(MainMenu.class);
+		// System.out.println("first window opened");
+//		Platform.startup(() -> {
+//			Stage stage = new Stage();
+//			mainMenu = new MainMenu(stage, this);
+//		});
 
 		// starting a game with playersSet and board previously specified
-		 startGame();
+		startGame();
 
 	}
 
@@ -129,6 +151,12 @@ public class GameController implements ControllerInterface {
 			Scanner scan = new Scanner(System.in);
 			String input = "";
 			while (true) {
+
+				// >>gameView interaction methods test<<
+				System.out.println("level before change is " + level);
+				setLevel("cyberpro/game/model/level1.txt");
+				System.out.println("level after change is " + level);
+
 				input = scan.next();
 				// serialization testing
 				if (input.toUpperCase().charAt(0) == ('Z')) {
@@ -137,9 +165,13 @@ public class GameController implements ControllerInterface {
 					DataHandler.saveCounterIntoFile();
 				}
 				if (input.toUpperCase().charAt(0) == ('X')) {
-					System.out.println("Deserializing the players list...");
-					System.out.println(DataHandler.deserializePlayersSet(new File("P1P2.ser")));
-					DataHandler.loadCountersFromFile();
+					/*
+					 * System.out.println("Deserializing the players list...");
+					 * System.out.println(DataHandler.deserializePlayersSet(new File("P1P2.ser")));
+					 * DataHandler.loadCountersFromFile();
+					 */
+					System.out.println("Got a game window close command");
+					gameOverComplete();
 				}
 				if (input.toUpperCase().charAt(0) == ('O')) {
 					System.out.println("Game is over, returning to the main menu");
@@ -283,7 +315,7 @@ public class GameController implements ControllerInterface {
 
 	// Draw the objects
 	private static void playersViewUpdate() {
-		// send off Players' Data
+		// send  Players' Data
 		// actually call the View's method
 
 	}
@@ -564,7 +596,7 @@ public class GameController implements ControllerInterface {
 					 * System.out.println("After demolishing the tile is " +
 					 * game.getBoard().getCell(iCoordinate.getX(), iCoordinate.getY()));
 					 */
-					// adding rays at the cell being destroyed
+					// adding rays at the cell being destroyed 
 					bombFound.addToRays(iCoordinate);
 
 					// uncovering a modifier under the destroyed brick wall
@@ -789,7 +821,7 @@ public class GameController implements ControllerInterface {
 		player.addModifier(modifier);
 		// setting up the scheduler for removing the modifier after its duration ending
 		if (modifier.getDuration() != 0) {
-			schedulerForGameOver.schedule(() -> player.removeModifier(modifier), modifier.getDuration(),
+			schedulerForModifiersOff.schedule(() -> player.removeModifier(modifier), modifier.getDuration(),
 					TimeUnit.SECONDS);
 		}
 
@@ -822,12 +854,47 @@ public class GameController implements ControllerInterface {
 	// sets up a playersSet to play next
 	@Override
 	public void setPlayers(ArrayList<Player> players) {
+		if (players == null) {
+			return;
+		}
+		
+		// if the method isn't called from the application start 
+		if (playersSet != null) {
+			System.out.println("PlayersSet != null. Saving playersSet into File");
+			// saving playerSet as the lastPlayerSet into the File
+			DataHandler.saveLastPlayersSet(players);
+			// saving playerSet  as a regular playerSet into the File
+			DataHandler.serializePlayersSet(players);
+			// calculating max counter number and updating the Player counter to the max value
+			int maxId = Player.getCounter();
+			for (Player player : players) {
+				int playerCount = Integer.parseInt(player.getId().substring(1));
+				if (maxId < playerCount) {
+					maxId = playerCount;
+				}
+			}
+			if (maxId != Player.getCounter()) {
+				Player.setCounter(maxId);
+			}
+		}
+		// setting up the playerSet value
 		playersSet = players;
+
 	}
 
 	@Override
 	public void gameOverComplete() {
-		// TBD
+		// closing the gameView window
+		System.out.println("Closing the gameView window...");
+		Platform.runLater(() -> {
+			if (gameView != null) {
+				gameView.getStage().close();
+
+			}
+		});
+
+		// starting the main menu window
+
 	}
 
 	@Override

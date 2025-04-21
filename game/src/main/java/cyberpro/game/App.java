@@ -12,6 +12,6 @@ import java.io.IOException;
 public class App {
 	public static void main(String[] args) throws IOException {
 		GameController gameController = new GameController();
-		gameController.mainMenu();
+		gameController.enterController();
 	}
 }
