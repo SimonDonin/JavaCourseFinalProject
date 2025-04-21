@@ -886,12 +886,12 @@ public class GameController implements ControllerInterface {
 	public void gameOverComplete() {
 		// closing the gameView window
 		System.out.println("Closing the gameView window...");
-		Platform.runLater(() -> {
-			if (gameView != null) {
-				gameView.getStage().close();
-
-			}
-		});
+//		Platform.runLater(() -> {
+//			if (gameView != null) {
+//				gameView.getStage().close();
+//
+//			}
+//		});
 
 		// starting the main menu window
 
