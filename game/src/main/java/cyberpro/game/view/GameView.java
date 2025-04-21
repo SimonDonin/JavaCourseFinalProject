@@ -50,8 +50,8 @@ import javafx.scene.Node;
  */
 public class GameView {
     
-    Logger logger = Logger.getLogger(GameView.class.getName());
-    // Create logger using core Java API
+    final Logger logger; // Create logger using core Java API
+        // Create logger using core Java API
     
     private ControllerInterface controller;
     private final int TILE_SIZE = 40;
@@ -112,6 +112,7 @@ public class GameView {
     private int playerDefaultSpeed = 150;
 
     public GameView(Stage stage, ControllerInterface controller) {
+        this.logger = Logger.getLogger(GameView.class.getName());
         ArrayList<Player> players;
                 
         logger.setLevel(Level.FINE);
