@@ -4,6 +4,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 public class Bomb {
 	private static int counter = 0;
@@ -16,7 +17,7 @@ public class Bomb {
 	private Date explosionTime;
 	private int raysRange;
 	private Date raysOffDate;
-	private ArrayList<Coordinates> rays;
+	private CopyOnWriteArrayList<Coordinates> rays;
 
 	/*
 	 * A player plants a bomb and the following input values are passing on:
@@ -33,7 +34,7 @@ public class Bomb {
 		this.distantExplosion = distantExplosion;
 		this.explosionTime = explosionTime;
 		this.raysRange = DEFAULT_RAYS_RANGE;
-		this.rays = new ArrayList<Coordinates>();
+		this.rays = new CopyOnWriteArrayList<Coordinates>();
 	}
 
 	public static int getDefaultRaysRange() {
@@ -52,7 +53,7 @@ public class Bomb {
 		return playerId;
 	}
 
-	public ArrayList<Coordinates> getRays() {
+	public CopyOnWriteArrayList<Coordinates> getRays() {
 		return rays;
 	}
 

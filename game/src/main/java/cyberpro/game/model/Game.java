@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ScheduledFuture;
 
 import cyberpro.game.view.TileType;
@@ -20,7 +21,7 @@ public class Game {
 	private String name;
 	private Board board;
 	private ArrayList<Player> players;
-	private ArrayList<Bomb> bombs;
+	private CopyOnWriteArrayList<Bomb> bombs;
 	private ArrayList<Bomb> bombsExploded;
 	private ArrayList<Modifier> modifiers;
 	private Map<String, ScheduledFuture> explosionTasksByBombId = new HashMap<>();
@@ -34,7 +35,7 @@ public class Game {
 		this.name = name;
 		this.players = players;
 		this.board = board;
-		bombs = new ArrayList<>();
+		bombs = new CopyOnWriteArrayList<>();
 		bombsExploded = new ArrayList<>();
 		modifiers = new ArrayList<>();
 	}
@@ -43,7 +44,7 @@ public class Game {
 		return players;
 	}
 
-	public ArrayList<Bomb> getBombs() {
+	public CopyOnWriteArrayList<Bomb> getBombs() {
 		return bombs;
 	}
 

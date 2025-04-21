@@ -9,6 +9,8 @@ import cyberpro.game.model.Player;
 import cyberpro.game.view.GameView;
 
 import java.util.ArrayList;
+import java.util.concurrent.CopyOnWriteArrayList;
+
 import junit.framework.TestCase;
 
 
@@ -39,7 +41,7 @@ public class GameViewTest extends TestCase {
     public void testDrawGrid() {
         System.out.println("drawGrid");
         ArrayList<Player> players = null;
-        ArrayList<Bomb> bombs = null;
+        CopyOnWriteArrayList<Bomb> bombs = null;
         ArrayList<Modifier> modifiers = null;
         GameView instance = null;
         instance.drawGrid(players, bombs, modifiers);

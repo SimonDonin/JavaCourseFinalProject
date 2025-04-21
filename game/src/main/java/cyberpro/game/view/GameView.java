@@ -29,6 +29,7 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.logging.*;
 import javafx.animation.AnimationTimer;
 import javafx.scene.media.AudioClip;
@@ -301,7 +302,7 @@ public class GameView {
         gameBoard = board;
     }
 
-    public void drawGrid(ArrayList<Player> players, ArrayList<Bomb> bombs, ArrayList<Modifier> modifiers) {
+    public void drawGrid(ArrayList<Player> players, CopyOnWriteArrayList<Bomb> bombs, ArrayList<Modifier> modifiers) {
         grid.getChildren().clear();
         // We need to clear all grid. GridPane do not allow duplicated nodes
         for (int row = 0; row < gridWidth; row++) {
@@ -418,7 +419,7 @@ public class GameView {
         grid.add(bombView, bomb.getCoordinates().getX(), bomb.getCoordinates().getY());
     }
 
-    public void blastBomb(Bomb bomb, ArrayList<Coordinates> blastWave) {
+    public void blastBomb(Bomb bomb, CopyOnWriteArrayList<Coordinates> blastWave) {
         if (bomb == null) {
             logger.log(Level.WARNING, "No bomb");
             return;
