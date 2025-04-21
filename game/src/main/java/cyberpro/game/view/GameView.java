@@ -80,12 +80,8 @@ public class GameView {
     private Image blastLeftRay, blastRightRay, blastTopRay, blastBottomRay;
     
     // Begin load sound files
-    private static final AudioClip BLAST_BOMB_SOUND = new AudioClip(
-        GameView.class.getResource("music/sndBlastBomb.wav").toExternalForm()
-    );
-    private static final AudioClip PLANT_BOMB_SOUND = new AudioClip(
-        GameView.class.getResource("music/sndPlantBomb.wav").toExternalForm()
-    );
+    private static AudioClip BLAST_BOMB_SOUND;
+    private static AudioClip PLANT_BOMB_SOUND;
     
 
     // Begin declare map lists for player, modifier and bomb sprites
@@ -275,9 +271,20 @@ public class GameView {
             blastRightTip = loadImage("blast/blastRightTip.png");
             blastRightRay = loadImage("blast/blastRightRay.png");
         } catch (FileNotFoundException e) {
-            logger.log(Level.SEVERE, "Can't load blast sprites. Check folder 'blast' inside a view folder");
-            e.printStackTrace(); // or show an alert, log to file, etc.
+            logger.log(Level.SEVERE, "Can't load blast sprites. Check folder 'blast' inside a view folder for all files listed above. Game is still playable, but it's not a fun to play without nice sprites.");
         }
+        
+        try {
+            BLAST_BOMB_SOUND = new AudioClip(
+                GameView.class.getResource("music/sndBlastBomb.wav").toExternalForm()
+            );
+            PLANT_BOMB_SOUND = new AudioClip(
+                GameView.class.getResource("music/sndPlantBomb.mp3").toExternalForm()
+            );
+        } catch (NullPointerException e) {
+            logger.log(Level.SEVERE, "Can't load sounds. Check folder 'music' inside a view folder. Game is still playable, but without sounds.");
+        }
+        
         
         playBackgroundMusic();
     }
@@ -540,7 +547,7 @@ public class GameView {
             logger.log(Level.WARNING, "Could not play music: {0}", e.getMessage());
         }
     }
-    
+
     public void stopBackgroundMusic() {
         if (mediaPlayer != null) {
             mediaPlayer.stop();
