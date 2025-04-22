@@ -26,43 +26,13 @@ import java.util.Arrays;
  */
 public class MainMenu extends Application {
     
-    private ControllerInterface controller;
+    private final ControllerInterface controller;
 
-	// this constructor is needed by JavaFX
-//	public MainMenu() {
-//
-//	}
-//
-//	public MainMenu(ControllerInterface controller) {
-//		this.controller = controller;
-//	}
     @Override
     public void start(Stage primaryStage) {
 
-
-        // startButton.getStyleClass().add("menu-button");
-        // mapEditorButton.getStyleClass().add("menu-button");
-        // exitButton.getStyleClass().add("menu-button");
-
-        // Event handling
-        // startButton.setOnAction(e -> {
-        //    String selectedMode = onePlayer.isSelected() ? "1 Player" : "2 Players";
-        //    System.out.println("Start Game clicked: " + selectedMode + " mode");
-        //    // launch game logic here
-        //});
-
-
-
-        // Scene scene = new Scene(menuLayout, 900, 600);
-        // scene.getStylesheets().add(getClass().getResource("menu-style.css").toExternalForm());
-
         primaryStage.setTitle("Game Menu");
-        // primaryStage.setScene(scene);
         primaryStage.show();
-    }
-
-    public static void main(String[] args) {
-        launch(args);
     }
         
     public MainMenu(Stage stage, ControllerInterface controller) {
@@ -85,18 +55,18 @@ public class MainMenu extends Application {
         VBox modeSelection = new VBox(5, modeLabel, onePlayer, twoPlayers);
         modeSelection.setAlignment(Pos.CENTER);
         
-        // === ListView with .txt level files ===
+        // ListView with .txt level files 
         Label levelsLabel = new Label("Available Levels:");
         levelsLabel.getStyleClass().add("mode-label");
 
         ListView<String> levelListView = new ListView<>();
         ObservableList<String> levelFileNames = FXCollections.observableArrayList();
 
-        // Folder path (relative to project or use absolute path)
+        // Folder path (absolute patch)
         String patch = GameController.class.getProtectionDomain().getCodeSource().getLocation().getPath();
         patch = patch + "cyberpro/game/model/";
         File folder = new File(patch);
-        System.out.println(patch);
+
         if (folder.exists() && folder.isDirectory()) {
             File[] files = folder.listFiles((dir, name) -> name.toLowerCase().endsWith(".txt"));
             if (files != null) {
@@ -145,13 +115,7 @@ public class MainMenu extends Application {
             }
         });
 
-        mapEditorButton.setOnAction(e -> {
-            System.out.println("Map Editor clicked");
-            // launch map editor
-        });
-
         exitButton.setOnAction(e -> stage.close());
-        
 
         // Layout
         VBox menuLayout = new VBox(20);

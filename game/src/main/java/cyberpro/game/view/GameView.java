@@ -108,11 +108,13 @@ public class GameView {
     private int gridWidth;
     private int gridHeight;
     
-    
     private int playerDefaultSpeed = 150;
+    
+    private Stage stage; // Make accessible externally
 
     public GameView(Stage stage, ControllerInterface controller) {
         this.logger = Logger.getLogger(GameView.class.getName());
+        this.stage = stage; 
         ArrayList<Player> players;
                 
         logger.setLevel(Level.FINE);
@@ -171,8 +173,10 @@ public class GameView {
                     if (pressedKeys.contains(KeyCode.P)) {
                         if (isPaused=false) {
                             controller.pauseOn();
+                            isPaused = true;
                         } else {
                             controller.pauseOff();
+                            isPaused = false;
                         }
                         // Make a 100 ms pause to opress false detection of keypresses
                         PauseTransition pause = new PauseTransition(Duration.millis(100));
@@ -563,6 +567,10 @@ public class GameView {
             mediaPlayer.pause();
             logger.log(Level.INFO, "Background music is paused.");
         }
+    }
+    
+    public Stage getStage() {
+        return stage;
     }
 
 }
