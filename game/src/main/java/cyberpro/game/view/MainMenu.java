@@ -85,7 +85,7 @@ public class MainMenu extends Application {
             if (newVal != null) {
                 File selectedFile = new File(folder, newVal);
                 System.out.println("Selected file full path: " + selectedFile.getAbsolutePath());
-                controller.setLevel(selectedFile.getAbsolutePath());
+                controller.setLevel("/cyberpro/game/model/" +  newVal);
             }
         });
         
