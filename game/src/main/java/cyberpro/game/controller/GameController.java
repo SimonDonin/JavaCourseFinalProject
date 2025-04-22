@@ -27,7 +27,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 
 public class GameController implements ControllerInterface {
-	private static final String DEFAULT_LEVEL = "/cyberpro/game/model/level2.txt";
+	private static final String DEFAULT_LEVEL = "/cyberpro/game/model/level1.txt";
 	private String level = DEFAULT_LEVEL;
 	private static BlockingQueue<String> commandQueue = new LinkedBlockingQueue<>();
 	private static final int DEFAULT_TIME_TILL_EXPLOSION = 4;
@@ -44,6 +44,7 @@ public class GameController implements ControllerInterface {
 
 	private GameView gameView;
 	private Game game;
+	private MainMenu mainMenuGUI;
 
 	// main menu: enter number of players, enter players' names, choose players'
 	// colors, choose a map, then start
@@ -100,7 +101,7 @@ public class GameController implements ControllerInterface {
 		// System.out.println("first window opened");
 		Platform.startup(() -> {
 			Stage stage = new Stage();
-                        MainMenu mainMenu = new MainMenu(stage, this);
+			mainMenuGUI = new MainMenu(stage, this);
 			// mainMenu = new MainMenu(stage, this);
 		});
 
@@ -114,8 +115,9 @@ public class GameController implements ControllerInterface {
 	public void startGame() throws FileNotFoundException, IOException {
 		// getting a board
 		FileResourcesImporter fileResourcesImporter = new FileResourcesImporter();
-		Board board = fileResourcesImporter.importLevelIntoBoard("level", DEFAULT_LEVEL);
+		Board board = fileResourcesImporter.importLevelIntoBoard("level", (level.isBlank() ? DEFAULT_LEVEL : level)); 
 		game = new Game("Level", playersSet, board);
+		game.playersRessurect();
 		gameProcess();
 	}
 
@@ -317,7 +319,7 @@ public class GameController implements ControllerInterface {
 
 	// Draw the objects
 	private static void playersViewUpdate() {
-		// send  Players' Data
+		// send Players' Data
 		// actually call the View's method
 
 	}
@@ -598,7 +600,7 @@ public class GameController implements ControllerInterface {
 					 * System.out.println("After demolishing the tile is " +
 					 * game.getBoard().getCell(iCoordinate.getX(), iCoordinate.getY()));
 					 */
-					// adding rays at the cell being destroyed 
+					// adding rays at the cell being destroyed
 					bombFound.addToRays(iCoordinate);
 
 					// uncovering a modifier under the destroyed brick wall
@@ -781,11 +783,12 @@ public class GameController implements ControllerInterface {
 	// returns the bomb that has its rays at the coordinates specified
 	public boolean raysBombByCoordinates(Coordinates coordinates) {
 		for (Bomb bomb : game.getBombsExploded()) {
-			System.out.println(bomb.getRays());
+			//System.out.println(bomb.getRays());
 			for (Coordinates raysCoords : bomb.getRays()) {
 				System.out.println(raysCoords);
 				System.out.println(coordinates);
 				if (raysCoords.getX() == coordinates.getX() && raysCoords.getY() == coordinates.getY()) {
+					System.err.println("Player met explosion rays at the point " + coordinates);
 					return true;
 				}
 			}
@@ -859,15 +862,16 @@ public class GameController implements ControllerInterface {
 		if (players == null) {
 			return;
 		}
-		
-		// if the method isn't called from the application start 
+
+		// if the method isn't called from the application start
 		if (playersSet != null) {
 			System.out.println("PlayersSet != null. Saving playersSet into File");
 			// saving playerSet as the lastPlayerSet into the File
 			DataHandler.saveLastPlayersSet(players);
-			// saving playerSet  as a regular playerSet into the File
+			// saving playerSet as a regular playerSet into the File
 			DataHandler.serializePlayersSet(players);
-			// calculating max counter number and updating the Player counter to the max value
+			// calculating max counter number and updating the Player counter to the max
+			// value
 			int maxId = Player.getCounter();
 			for (Player player : players) {
 				int playerCount = Integer.parseInt(player.getId().substring(1));
@@ -888,16 +892,14 @@ public class GameController implements ControllerInterface {
 	public void gameOverComplete() {
 		// closing the gameView window
 		System.out.println("Closing the gameView window...");
-//		Platform.runLater(() -> {
-//			if (gameView != null) {
-//				gameView.getStage().close();
-//
-//			}
-//		});
-
-		// starting the main menu window
+		Platform.runLater(() -> {
+			gameView.getStage().close();
+			mainMenuGUI.showMainMenu();
+			gameView.getMediaPlayer().stop();
+		});
 
 	}
+	// starting the main menu window
 
 	@Override
 	public void pauseOn() {
@@ -913,6 +915,7 @@ public class GameController implements ControllerInterface {
 	@Override
 	public void setLevel(String levelFromGUI) {
 		level = levelFromGUI;
+		System.out.println(levelFromGUI + " was set from GUI");
 	}
 
 	// returns all previously saved playersSets from local files in the ArrayList

@@ -15,6 +15,9 @@ public class FileResourcesImporter {
 	public Board importLevelIntoBoard(String levelName, String level) throws FileNotFoundException, IOException {
 		// This is simple implementation of loadLevel method
 		// External method will decide, with level we want to load
+		
+		System.err.println("level = " + level);
+		
 		InputStream is = getClass().getResourceAsStream(level);
 		if (is == null) {
 			throw new FileNotFoundException("Resource not found: " + levelName);

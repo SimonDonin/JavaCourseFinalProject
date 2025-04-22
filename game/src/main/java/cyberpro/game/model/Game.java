@@ -236,4 +236,15 @@ public class Game {
 		}
 	}
 
+	public void playersRessurect() {
+		if (players == null) {
+			return;
+		}
+		for (Player player : players) {
+			if (!player.isAlive()) {
+				player.setAlive(true);
+			}
+		}
+	}
+
 }

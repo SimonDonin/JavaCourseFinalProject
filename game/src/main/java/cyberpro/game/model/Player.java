@@ -24,7 +24,7 @@ public class Player implements Serializable {
 	private int winsCount = 0;
 	private int lossesCount = 0;
 	private int drawsCount = 0;
-	private static final int DEFAULT_PLAYER_SPEED = 1;
+	private static final int DEFAULT_PLAYER_SPEED = 100;
 
 	public Player(String name, Coordinates coordinates) {
 		this.id = "P" + ++counter;
