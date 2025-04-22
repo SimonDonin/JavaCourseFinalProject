@@ -534,6 +534,7 @@ public class GameView {
     
     public void gameOver(String msg) {
         Platform.runLater(() -> new GameOverWindow(msg));
+        controller.gameOverComplete();
     }
     
     public void playBackgroundMusic() {
