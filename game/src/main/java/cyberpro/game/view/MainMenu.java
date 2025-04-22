@@ -6,6 +6,9 @@ package cyberpro.game.view;
 
 import cyberpro.game.controller.ControllerInterface;
 import cyberpro.game.controller.GameController;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
+import javafx.scene.control.ListView;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import javafx.application.Application;
@@ -14,6 +17,8 @@ import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.layout.*;
 import javafx.stage.Stage;
+import java.io.File;
+import java.util.Arrays;
 
 /**
  *
@@ -31,67 +36,34 @@ public class MainMenu extends Application {
 //	public MainMenu(ControllerInterface controller) {
 //		this.controller = controller;
 //	}
+    @Override
+    public void start(Stage primaryStage) {
 
-	@Override
-	public void start(Stage primaryStage) {
-		// Title
-		Label title = new Label("My Game Title");
-		title.getStyleClass().add("game-title");
 
-		// Player mode selection
-		Label modeLabel = new Label("Select Mode:");
-		modeLabel.getStyleClass().add("mode-label");
+        // startButton.getStyleClass().add("menu-button");
+        // mapEditorButton.getStyleClass().add("menu-button");
+        // exitButton.getStyleClass().add("menu-button");
 
-		ToggleGroup playerModeGroup = new ToggleGroup();
-		RadioButton onePlayer = new RadioButton("1 Player");
-		RadioButton twoPlayers = new RadioButton("2 Players");
-		onePlayer.setToggleGroup(playerModeGroup);
-		twoPlayers.setToggleGroup(playerModeGroup);
-		onePlayer.setSelected(true); // default
+        // Event handling
+        // startButton.setOnAction(e -> {
+        //    String selectedMode = onePlayer.isSelected() ? "1 Player" : "2 Players";
+        //    System.out.println("Start Game clicked: " + selectedMode + " mode");
+        //    // launch game logic here
+        //});
 
-		VBox modeSelection = new VBox(5, modeLabel, onePlayer, twoPlayers);
-		modeSelection.setAlignment(Pos.CENTER);
 
-		// Buttons
-		Button startButton = new Button("Start Game");
-		Button mapEditorButton = new Button("Map Editor");
-		Button exitButton = new Button("Exit");
 
-		startButton.getStyleClass().add("menu-button");
-		mapEditorButton.getStyleClass().add("menu-button");
-		exitButton.getStyleClass().add("menu-button");
+        // Scene scene = new Scene(menuLayout, 900, 600);
+        // scene.getStylesheets().add(getClass().getResource("menu-style.css").toExternalForm());
 
-		// Event handling
-		startButton.setOnAction(e -> {
-			String selectedMode = onePlayer.isSelected() ? "1 Player" : "2 Players";
-			System.out.println("Start Game clicked: " + selectedMode + " mode");
-			// launch game logic here
-		});
+        primaryStage.setTitle("Game Menu");
+        // primaryStage.setScene(scene);
+        primaryStage.show();
+    }
 
-		mapEditorButton.setOnAction(e -> {
-			System.out.println("Map Editor clicked");
-			// launch map editor
-		});
-
-		exitButton.setOnAction(e -> primaryStage.close());
-
-		// Layout
-		VBox menuLayout = new VBox(20);
-		menuLayout.setAlignment(Pos.CENTER);
-		menuLayout.getChildren().addAll(title, modeSelection, startButton, mapEditorButton, exitButton);
-		menuLayout.getStyleClass().add("menu-background");
-
-		Scene scene = new Scene(menuLayout, 600, 400);
-		scene.getStylesheets().add(getClass().getResource("menu-style.css").toExternalForm());
-
-		primaryStage.setTitle("Game Menu");
-		primaryStage.setScene(scene);
-		primaryStage.show();
-	}
-
-	public static void main(String[] args) {
-		launch(args);
-	}
+    public static void main(String[] args) {
+        launch(args);
+    }
         
     public MainMenu(Stage stage, ControllerInterface controller) {
         this.controller = controller; // Get Controller interface to call its methods
@@ -111,6 +83,41 @@ public class MainMenu extends Application {
         twoPlayers.setSelected(true); // default
 
         VBox modeSelection = new VBox(5, modeLabel, onePlayer, twoPlayers);
+        modeSelection.setAlignment(Pos.CENTER);
+        
+        // === ListView with .txt level files ===
+        Label levelsLabel = new Label("Available Levels:");
+        levelsLabel.getStyleClass().add("mode-label");
+
+        ListView<String> levelListView = new ListView<>();
+        ObservableList<String> levelFileNames = FXCollections.observableArrayList();
+
+        // Folder path (relative to project or use absolute path)
+        String patch = GameController.class.getProtectionDomain().getCodeSource().getLocation().getPath();
+        patch = patch + "cyberpro/game/model/";
+        File folder = new File(patch);
+        System.out.println(patch);
+        if (folder.exists() && folder.isDirectory()) {
+            File[] files = folder.listFiles((dir, name) -> name.toLowerCase().endsWith(".txt"));
+            if (files != null) {
+                Arrays.stream(files)
+                        .map(File::getName)
+                        .forEach(levelFileNames::add);
+            }
+        }
+        levelListView.setItems(levelFileNames);
+        levelListView.setMaxHeight(400);
+        
+        // Selection handler
+        levelListView.getSelectionModel().selectedItemProperty().addListener((obs, oldVal, newVal) -> {
+            if (newVal != null) {
+                File selectedFile = new File(folder, newVal);
+                System.out.println("Selected file full path: " + selectedFile.getAbsolutePath());
+                controller.setLevel(selectedFile.getAbsolutePath());
+            }
+        });
+        
+        VBox levelSelection = new VBox(2, levelsLabel, levelListView);
         modeSelection.setAlignment(Pos.CENTER);
 
         // Buttons
@@ -144,14 +151,15 @@ public class MainMenu extends Application {
         });
 
         exitButton.setOnAction(e -> stage.close());
+        
 
         // Layout
         VBox menuLayout = new VBox(20);
         menuLayout.setAlignment(Pos.CENTER);
-        menuLayout.getChildren().addAll(title, modeSelection, startButton, mapEditorButton, exitButton);
+        menuLayout.getChildren().addAll(title, modeSelection, startButton, levelSelection, exitButton);
         menuLayout.getStyleClass().add("menu-background");
 
-        Scene scene = new Scene(menuLayout, 600, 400);
+        Scene scene = new Scene(menuLayout, 600, 600);
         scene.getStylesheets().add(getClass().getResource("menu-style.css").toExternalForm());
 
 

@@ -37,7 +37,7 @@ public class GameOverWindow {
         layout.getStyleClass().add("game-over-layout");
 
         Scene scene = new Scene(layout, 400, 200);
-        // scene.getStylesheets().add(GameOverWindow.class.getResource("gameover.css").toExternalForm());
+        scene.getStylesheets().add(GameOverWindow.class.getResource("gameover.css").toExternalForm());
 
         window.setScene(scene);
         window.showAndWait();
