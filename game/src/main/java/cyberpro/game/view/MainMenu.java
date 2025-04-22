@@ -27,6 +27,7 @@ import java.util.Arrays;
 public class MainMenu extends Application {
     
     private final ControllerInterface controller;
+    private Stage stage;
 
     @Override
     public void start(Stage primaryStage) {
@@ -37,6 +38,7 @@ public class MainMenu extends Application {
         
     public MainMenu(Stage stage, ControllerInterface controller) {
         this.controller = controller; // Get Controller interface to call its methods
+        this.stage = stage;
         // Title
         Label title = new Label("Bombermen");
         title.getStyleClass().add("game-title");
@@ -105,6 +107,7 @@ public class MainMenu extends Application {
             System.out.println("Start Game clicked: " + selectedMode + " mode");
             // launch game logic here
             try {
+                stage.hide();
                 controller.startGame();
             } catch (FileNotFoundException err) {
                 System.err.println("File not found: " + err.getMessage());
@@ -130,5 +133,10 @@ public class MainMenu extends Application {
         stage.setScene(scene);
         stage.setTitle("Game menu");
         stage.show();
+    }
+    
+    public void showMainMenu() {
+        stage.show();
+        stage.requestFocus();
     }
 }
