@@ -10,7 +10,7 @@
 ### **What problem does it solve?**
 People often seek an engaging activity to enjoy with friends or family. This project provides a simple yet dynamic **2D retro-style game** that keeps players entertained for hours.
 
-> *Basic game rules are available via the following [link](#).*
+> *Basic game rules are available via the following [[link](https://docs.google.com/document/d/17rAAN2dZpHcTxhgpe8J76tJm84P4Ck36cJ1Dko8Azk0/edit?usp=sharing)](#).*
 
 ---
 
@@ -40,11 +40,6 @@ To develop an exciting **2D retro-style game** designed for two players to play 
 
 ### **What it should achieve?**
 To engage two players in **at least one hour of enjoyable gameplay**, creating unforgettable moments.
-
----
-
-## **Project Plan**
-The full project plan is outlined in a Google Sheet, accessible via [this link](#).
 
 ---
 
