@@ -84,7 +84,7 @@ public class MainMenu extends Application {
         levelListView.getSelectionModel().selectedItemProperty().addListener((obs, oldVal, newVal) -> {
             if (newVal != null) {
                 File selectedFile = new File(folder, newVal);
-                System.out.println("Selected file full path: " + selectedFile.getAbsolutePath());
+                System.out.println("Selected file: " + selectedFile.toString());
                 controller.setLevel("/cyberpro/game/model/" +  newVal);
             }
         });

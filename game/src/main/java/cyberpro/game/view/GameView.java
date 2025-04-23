@@ -26,6 +26,7 @@ import javafx.util.Duration;
 // End animation libs
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
@@ -90,6 +91,7 @@ public class GameView {
 	private Map<String, ImageView> bombSprites = new HashMap<>();
 	private Map<String, ImageView> deadPlayerSprites = new HashMap<>();
 	private Map<String, ImageView> modifierSprites = new HashMap<>();
+        private Map<String, ArrayList<ImageView>> blastSprites = new HashMap<>();
 	// End declare map lists for player and bomb sprites
 
 	// Declare a mediaplayer for background music
@@ -422,145 +424,173 @@ public class GameView {
 		transition.play();
 	}
 
-	public void plantBomb(Bomb bomb) {
-		if (bomb == null) {
-			logger.log(Level.WARNING, "No bomb");
-			return;
-		}
-		// Play a sound before plant a bomb on the board
-		PLANT_BOMB_SOUND.setVolume(0.6);
-		PLANT_BOMB_SOUND.play();
-		ImageView bombView = new ImageView(bombImage);
-		bombView.setFitWidth(TILE_SIZE);
-		bombView.setFitHeight(TILE_SIZE);
-		bombSprites.put(bomb.getId(), bombView);
-		grid.add(bombView, bomb.getCoordinates().getX(), bomb.getCoordinates().getY());
-	}
+    public void plantBomb(Bomb bomb) {
+        if (bomb == null) {
+            logger.log(Level.WARNING, "No bomb");
+            return;
+        }
+        // Play a sound before plant a bomb on the board
+        PLANT_BOMB_SOUND.setVolume(0.6);
+        PLANT_BOMB_SOUND.play();
+        ImageView bombView = new ImageView(bombImage);
+        bombView.setFitWidth(TILE_SIZE);
+        bombView.setFitHeight(TILE_SIZE);
+        bombSprites.put(bomb.getId(), bombView);
+        grid.add(bombView, bomb.getCoordinates().getX(), bomb.getCoordinates().getY());
+    }
 
-	public void blastBomb(Bomb bomb, CopyOnWriteArrayList<Coordinates> blastWave) {
-		if (bomb == null) {
-			logger.log(Level.WARNING, "No bomb");
-			return;
-		}
-		// Play blast sound before update the view
-		BLAST_BOMB_SOUND.setVolume(0.8);
-		BLAST_BOMB_SOUND.play();
+    public void blastBomb(Bomb bomb, CopyOnWriteArrayList<Coordinates> blastWave) {
+        ArrayList<ImageView> blastCloud = null;
 
-		int centerX = bomb.getCoordinates().getX();
-		int centerY = bomb.getCoordinates().getY();
-		int minX = centerX;
-		int maxX = centerX;
-		int minY = centerY;
-		int maxY = centerY;
+        if (bomb == null) {
+            logger.log(Level.WARNING, "No bomb");
+            return;
+        }
+        // Play blast sound before update the view
+        BLAST_BOMB_SOUND.setVolume(0.8);
+        BLAST_BOMB_SOUND.play();
 
-		for (Coordinates c : blastWave) {
-			if (c.getX() < minX)
-				minX = c.getX();
-			if (c.getX() > maxX)
-				maxX = c.getX();
-			if (c.getY() < minY)
-				minY = c.getY();
-			if (c.getY() > maxY)
-				maxY = c.getY();
-		}
-		// Now we have min/max coordinates for blast wave
+        int centerX = bomb.getCoordinates().getX();
+        int centerY = bomb.getCoordinates().getY();
+        int minX = centerX;
+        int maxX = centerX;
+        int minY = centerY;
+        int maxY = centerY;
 
-		// Now we have a ray length for every direction
-		drawBlast(blastCenter, centerX, centerY);
-		if (minX < centerX) {
-			drawBlast(blastLeftTip, minX, centerY);
-		}
-		if (maxX > centerX) {
-			drawBlast(blastRightTip, maxX, centerY);
-		}
-		if (minY < centerY) {
-			drawBlast(blastTopTip, centerX, minY);
-		}
-		if (maxY > centerY) {
-			drawBlast(blastBottomTip, centerX, maxY);
-		}
-		// Do not draw ray if it is close to a wall
+        for (Coordinates c : blastWave) {
+            if (c.getX() < minX) {
+                minX = c.getX();
+            }
+            if (c.getX() > maxX) {
+                maxX = c.getX();
+            }
+            if (c.getY() < minY) {
+                minY = c.getY();
+            }
+            if (c.getY() > maxY) {
+                maxY = c.getY();
+            }
+        }
+        // Now we have min/max coordinates for blast wave
 
-		if ((centerX - minX) > 1) {
-			for (int x = (centerX - 1); x > minX; x--) {
-				drawBlast(blastLeftRay, x, centerY);
-			}
-		}
-		if ((maxX - centerX) > 1) {
-			for (int x = (centerX + 1); x < maxX; x++) {
-				drawBlast(blastRightRay, x, centerY);
-			}
-		}
-		if ((centerY - minY) > 1) {
-			for (int y = (centerY - 1); y > minY; y--) {
-				drawBlast(blastBottomRay, centerX, y);
-			}
-		}
-		if ((maxY - centerY) > 1) {
-			for (int y = (centerY + 1); y < maxY; y++) {
-				drawBlast(blastBottomRay, centerX, y);
-			}
-		}
-		// Do not draw rays if ray length is < 2
-		// (so ray have only a tip or no ray)
-	}
+        // Now we have a ray length for every direction
+        blastCloud.add(drawBlast(blastCenter, centerX, centerY));
+        if (minX < centerX) {
+            blastCloud.add(drawBlast(blastLeftTip, minX, centerY));
+        }
+        if (maxX > centerX) {
+            blastCloud.add(drawBlast(blastRightTip, maxX, centerY));
+        }
+        if (minY < centerY) {
+            blastCloud.add(drawBlast(blastTopTip, centerX, minY));
+        }
+        if (maxY > centerY) {
+            blastCloud.add(drawBlast(blastBottomTip, centerX, maxY));
+        }
+        // Do not draw ray if it is close to a wall
 
-	private void drawBlast(Image img, int x, int y) {
-		ImageView blastView;
-		blastView = new ImageView(img);
-		blastView.setFitWidth(TILE_SIZE);
-		blastView.setFitHeight(TILE_SIZE);
-		grid.add(blastView, x, y);
-	}
+        if ((centerX - minX) > 1) {
+            for (int x = (centerX - 1); x > minX; x--) {
+                blastCloud.add(drawBlast(blastLeftRay, x, centerY));
+            }
+        }
+        if ((maxX - centerX) > 1) {
+            for (int x = (centerX + 1); x < maxX; x++) {
+                blastCloud.add(drawBlast(blastRightRay, x, centerY));
+            }
+        }
+        if ((centerY - minY) > 1) {
+            for (int y = (centerY - 1); y > minY; y--) {
+                blastCloud.add(drawBlast(blastBottomRay, centerX, y));
+            }
+        }
+        if ((maxY - centerY) > 1) {
+            for (int y = (centerY + 1); y < maxY; y++) {
+                blastCloud.add(drawBlast(blastBottomRay, centerX, y));
+            }
+        }
+        // Do not draw rays if ray length is < 2
+        // (so ray have only a tip or no ray)
+        blastSprites.put(bomb.getId(), blastCloud);
+        // All tiles of blast are keept at blastSprites to facilitate future removal
+        // blastCloud is local. It will be re-inicialized during next run
 
-	public void plantMod(Modifier mod) {
-		Coordinates modCoord = mod.getCoordinates();
-		ModifierType type = mod.getType();
-		ImageView modView = new ImageView();
+    }
+    
+    public void removeBlast(Bomb bomb) {
+        ArrayList<ImageView> blastCloud;
+        blastCloud = blastSprites.get(bomb.getId());
+        for (ImageView blastElement : blastCloud) {
+            grid.getChildren().remove(blastElement);
+        }
+        blastSprites.remove(bomb.getId());
+        // Remove all blast information from a set after it was removed from screen
+    }
 
-		modView.setFitWidth(TILE_SIZE);
-		modView.setFitHeight(TILE_SIZE);
-		switch (type) {
-		case ModifierType.REMOTE_EXPLOSION -> modView.setImage(modRemoteExplosion);
-		case ModifierType.PLUS_BOMB -> modView.setImage(modPlusBomb);
-		case ModifierType.SPEED_UP -> modView.setImage(modSpeedUp);
-		case ModifierType.PLUS_RANGE -> modView.setImage(modPlusRange);
-		case ModifierType.REVERSE_CONTROLS -> modView.setImage(modReverseCotrols);
-		}
-		modifierSprites.put(mod.getId(), modView);
-		// We add new modifier to a list, so we know what to remove after
-		grid.add(modView, modCoord.getX(), modCoord.getY());
-	}
+    private ImageView drawBlast(Image img, int x, int y) {
+        ImageView blastView;
+        blastView = new ImageView(img);
+        blastView.setFitWidth(TILE_SIZE);
+        blastView.setFitHeight(TILE_SIZE);
+        // blastCloud.add(blastView);
+        // Add new element of blast to an array of all blast tiles
+        grid.add(blastView, x, y);
+        return blastView;
+    }
 
-	public void removeMod(Modifier mod) {
-		// Place a code to remove modifier if it was taken
-		ImageView modView = modifierSprites.get(mod.getId());
-                modifierSprites.remove(mod.getId());
-                // Remove unused mod from a Set (garbage collector do not remove unused objects from inside collections)
-		grid.getChildren().remove(modView);
-		// We just remove a mod sprite from a game board.
-		ImageView floorView = new ImageView(floorImage);
-		floorView.setFitHeight(TILE_SIZE);
-		floorView.setFitWidth(TILE_SIZE);
-		grid.add(floorView, mod.getCoordinates().getX(), mod.getCoordinates().getY());
-	}
+    public void plantMod(Modifier mod) {
+        Coordinates modCoord = mod.getCoordinates();
+        ModifierType type = mod.getType();
+        ImageView modView = new ImageView();
 
-	private void handleKeyPress(KeyEvent event) {
-		pressedKeys.add(event.getCode());
-	}
+        modView.setFitWidth(TILE_SIZE);
+        modView.setFitHeight(TILE_SIZE);
+        switch (type) {
+            case ModifierType.REMOTE_EXPLOSION ->
+                modView.setImage(modRemoteExplosion);
+            case ModifierType.PLUS_BOMB ->
+                modView.setImage(modPlusBomb);
+            case ModifierType.SPEED_UP ->
+                modView.setImage(modSpeedUp);
+            case ModifierType.PLUS_RANGE ->
+                modView.setImage(modPlusRange);
+            case ModifierType.REVERSE_CONTROLS ->
+                modView.setImage(modReverseCotrols);
+        }
+        modifierSprites.put(mod.getId(), modView);
+        // We add new modifier to a list, so we know what to remove after
+        grid.add(modView, modCoord.getX(), modCoord.getY());
+    }
 
-	private void handleKeyRelease(KeyEvent event) {
-		pressedKeys.remove(event.getCode());
-	}
+    public void removeMod(Modifier mod) {
+        // Place a code to remove modifier if it was taken
+        ImageView modView = modifierSprites.get(mod.getId());
+        modifierSprites.remove(mod.getId());
+        // Remove unused mod from a Set (garbage collector do not remove unused objects from inside collections)
+        grid.getChildren().remove(modView);
+        // We just remove a mod sprite from a game board.
+        ImageView floorView = new ImageView(floorImage);
+        floorView.setFitHeight(TILE_SIZE);
+        floorView.setFitWidth(TILE_SIZE);
+        grid.add(floorView, mod.getCoordinates().getX(), mod.getCoordinates().getY());
+    }
 
-	public void killPlayer(Player player) {
-		logger.log(Level.INFO, "Player with id {0} is killed!", player.getId());
-		ImageView playerView = playerSprites.get(player.getId());
-		grid.getChildren().remove(playerView);
-		// Remove player sprite from grid
-		ImageView deadPlayerView = deadPlayerSprites.get(player.getId());
-		grid.add(deadPlayerView, player.getCoordinates().getX(), player.getCoordinates().getY());
-	}
+    private void handleKeyPress(KeyEvent event) {
+        pressedKeys.add(event.getCode());
+    }
+
+    private void handleKeyRelease(KeyEvent event) {
+        pressedKeys.remove(event.getCode());
+    }
+
+    public void killPlayer(Player player) {
+        logger.log(Level.INFO, "Player with id {0} is killed!", player.getId());
+        ImageView playerView = playerSprites.get(player.getId());
+        grid.getChildren().remove(playerView);
+        // Remove player sprite from grid
+        ImageView deadPlayerView = deadPlayerSprites.get(player.getId());
+        grid.add(deadPlayerView, player.getCoordinates().getX(), player.getCoordinates().getY());
+    }
 
 	public void gameOver(String msg) {
 		Platform.runLater(() -> new GameOverWindow(msg));
