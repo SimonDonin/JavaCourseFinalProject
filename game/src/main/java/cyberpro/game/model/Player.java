@@ -3,6 +3,7 @@ package cyberpro.game.model;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Set;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 import cyberpro.game.controller.ModifierType;
 
@@ -20,7 +21,7 @@ public class Player implements Serializable {
 	private boolean isAlive;
 	private int speed;
 	private Colors color;
-	private ArrayList<Modifier> playerModifiers;
+	private CopyOnWriteArrayList<Modifier> playerModifiers;
 	private int winsCount = 0;
 	private int lossesCount = 0;
 	private int drawsCount = 0;
@@ -33,7 +34,7 @@ public class Player implements Serializable {
 		this.coordinates = coordinates;
 		this.speed = 100;
 		this.color = Colors.GREEN;
-		this.playerModifiers = new ArrayList<>();
+		this.playerModifiers = new CopyOnWriteArrayList<>();
 		this.isAlive = true;
 	}
 
@@ -63,6 +64,14 @@ public class Player implements Serializable {
 
 	public Coordinates getCoordinates() {
 		return coordinates;
+	}
+
+	public void setCoordinates(Coordinates coordinates) {
+		this.coordinates = coordinates;
+	}
+
+	public void resetModifiers() {
+		playerModifiers = new CopyOnWriteArrayList<>();
 	}
 
 	public boolean moveDown() {
@@ -104,9 +113,10 @@ public class Player implements Serializable {
 
 	@Override
 	public String toString() {
-		return "Player " + name + ":" + "\n\tcoordinates: [" + coordinates.getX() + ", " + coordinates.getY() + "]"
-				+ "\n\tspeed: " + speed + "\n\tcolor: " + color + "\n\t" + playerModifiers.toString()
-				+ "\n\t Score: wins = " + winsCount + ", losses  = " + lossesCount + ", draws = " + drawsCount + "\n";
+		return "Player " + "id =" + id + " " + name + ":" + "\n\tcoordinates: [" + coordinates.getX() + ", "
+				+ coordinates.getY() + "]" + "\n\tspeed: " + speed + "\n\tcolor: " + color + "\n\t"
+				+ playerModifiers.toString() + "\n\t Score: wins = " + winsCount + ", losses  = " + lossesCount
+				+ ", draws = " + drawsCount + "\n";
 	}
 
 	public boolean kill() {

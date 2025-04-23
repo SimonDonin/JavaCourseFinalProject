@@ -12,6 +12,8 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 // This is starter for JavaFX window
 import javafx.application.Platform;
@@ -36,15 +38,17 @@ public class GameController implements ControllerInterface {
 	private static final TileType[] TILES_DESTRUCTIBLE = { TileType.BRICK_WALL };
 	private static final int DEFAULT_MAX_BOMBS_ACTIVE = 1;
 	private static final int GAME_OVER_TIME = 5;
-	private ScheduledExecutorService schedulerForExplosion = Executors.newScheduledThreadPool(10);
-	private ScheduledExecutorService schedulerForRaysOff = Executors.newScheduledThreadPool(10);
+	private ScheduledExecutorService schedulerForExplosion = Executors.newScheduledThreadPool(20);
+	private ScheduledExecutorService schedulerForRaysOff = Executors.newScheduledThreadPool(20);
 	private ScheduledExecutorService schedulerForGameOver = Executors.newScheduledThreadPool(1);
-	private ScheduledExecutorService schedulerForModifiersOff = Executors.newScheduledThreadPool(10);
+	private ScheduledExecutorService schedulerForModifiersOff = Executors.newScheduledThreadPool(20);
 	private ArrayList<Player> playersSet = new ArrayList<>();
+	private ScheduledFuture gameOverTask;
 
 	private GameView gameView;
 	private Game game;
 	private MainMenu mainMenuGUI;
+	private final Logger logger = Logger.getLogger(GameView.class.getName());; // Create logger using core Java API
 
 	// main menu: enter number of players, enter players' names, choose players'
 	// colors, choose a map, then start
@@ -55,135 +59,116 @@ public class GameController implements ControllerInterface {
 	}
 
 	// the entrance point into the Controller
-	public void enterController() throws IOException {
-		initPlayersCounter();
-		initLastPlayersSet();
-		mainMenu();
+	public void enterController() {
+		try {
+			initLastPlayersSet();
+			mainMenu();
+		} catch (Exception e) {
+			logger.log(Level.SEVERE, "Got an unexpected exception...");
+		}
 	}
 
 	// imports last Players Set and restores last max Player counter value
 	private void initLastPlayersSet() {
 		ArrayList<Player> playersSetImported = DataHandler.getLastPlayersSet();
-		if (playersSetImported == null) {
+		System.out.println(">>> playersSetImported is " + playersSetImported);
+		if (playersSetImported == null || playersSetImported.isEmpty()) {
 			return;
 		}
 		DataHandler.loadCounterFromFile();
 		setPlayers(playersSetImported);
+		initPlayersCounter();
 	}
 
-	// reads all the serialized counterFiles and calculates maximum counter value
+	// initializes the Player counter value file
 	public void initPlayersCounter() {
-		// TBD
+		// calculating max counter number and updating the Player counter to the max
+		// value
+		ArrayList<Player> playersSetImported = DataHandler.getLastPlayersSet();
+		logger.log(Level.INFO, ">>> playersSetImported is " + playersSetImported);
+		int maxId = Player.getCounter();
+		for (Player player : playersSetImported) {
+			int playerCount = Integer.parseInt(player.getId().substring(1));
+			logger.log(Level.INFO, "Counter value for player " + player.getName() + " = ");
+			if (maxId < playerCount) {
+				maxId = playerCount;
+			}
+		}
+		if (maxId != Player.getCounter()) {
+			logger.log(Level.INFO, "Setting up counter from initPlayersCounter: to the value = " + maxId);
+			Player.setCounter(maxId);
+			DataHandler.saveCounterIntoFile();
+			logger.log(Level.INFO, "currentCounter =" + Player.getCounter());
+		}
 	}
 
 	// Main menu with Players customization and level selection
 	public void mainMenu() throws IOException {
-		// Calling startViewMenu,
-		// filling out the Players' attributes and the level,
-		// saving a players set
 
-		// getting a players list
+		// >>> Only until the target mechanism is ready in the GUI <<<
+		// playersSet initialization
 		Player player1 = new Player("Player1", new Coordinates(4, 4));
 		Player player2 = new Player("Player2", new Coordinates(2, 6));
-		playersSet.add(player1);
-		playersSet.add(player2);
+		ArrayList<Player> myLst = new ArrayList<>();
+		myLst.add(player1);
+		myLst.add(player2);
+		setPlayers(myLst);
 
-		// should have an option for starting a new players set
-		// or loading another one to play
-		// for this - printing existing sets' players info and stats
-		// and suggesting to choose 1 set for loading
-		// saving an existing one choose and load a set
-
-		// printing the players stats if it's not empty
-
-		// Start the Main Menu
-		// Application.launch(MainMenu.class);
-		// System.out.println("first window opened");
+		// starting the MainMenu window
 		Platform.startup(() -> {
 			Stage stage = new Stage();
 			mainMenuGUI = new MainMenu(stage, this);
-			// mainMenu = new MainMenu(stage, this);
 		});
-
-		// starting a game with playersSet and board previously specified
-//		startGame();
-
 	}
 
-	// it is where users define their players and choose a level to play
 	@Override
-	public void startGame() throws FileNotFoundException, IOException {
+	// starts an actual game for one level
+	public void startGame() {
 		// getting a board
 		FileResourcesImporter fileResourcesImporter = new FileResourcesImporter();
-		Board board = fileResourcesImporter.importLevelIntoBoard("level", (level.isBlank() ? DEFAULT_LEVEL : level)); 
-		game = new Game("Level", playersSet, board);
-		game.playersRessurect();
-		gameProcess();
+		Board board;
+		try {
+			board = fileResourcesImporter.importLevelIntoBoard("level", (level.isBlank() ? DEFAULT_LEVEL : level));
+			// creating a game
+			game = new Game("Level", playersSet, board);
+			// reseting game variables
+			gameReset();
+			//
+			gameProcess();
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 
-	private void gameProcess() {
+	// resets game variables
+	private void gameReset() {
+		game.playersReset();
+		resetLists();
+		gameOverTask = null;
+	}
 
+	// runs a game GUI window and starts processes to provide actual game
+	// implementation
+	private void gameProcess() {
 		// GameView initialization
 		Platform.runLater(() -> {
 			Stage stage = new Stage();
 			gameView = new GameView(stage, this);
 		});
-
+		// draws an initial grid
 		draw();
-
 		// running a thread for dealing with a commands queue
 		new Thread(() -> {
 			try {
 				while (true) {
 					String command = commandQueue.take();
-					processCommand(command, game); // Command processing
-					// gameView.drawGrid(game.getPlayers(), game.getBombs(), game.getModifiers());
-					/*
-					 * Platform.runLater(() -> { // gameView.drawGrid(game.getPlayers(),
-					 * game.getBombs(), game.getModifiers()); // We do not redraw board each time.
-					 * // Now we do this only if boad itself has been changed. });
-					 */
-
+					processCommand(command, game);
 				}
 			} catch (InterruptedException e) {
 				Thread.currentThread().interrupt();
 			}
-		}).start(); // Retrieving a command from the queue (waits if it's empty)
-
-		// running a thread for testing
-		new Thread(() -> {
-			Scanner scan = new Scanner(System.in);
-			String input = "";
-			while (true) {
-
-				// >>gameView interaction methods test<<
-				System.out.println("level before change is " + level);
-				setLevel("cyberpro/game/model/level1.txt");
-				System.out.println("level after change is " + level);
-
-				input = scan.next();
-				// serialization testing
-				if (input.toUpperCase().charAt(0) == ('Z')) {
-					System.out.println("Serializing the players list...");
-					DataHandler.serializePlayersSet(game.getPlayers());
-					DataHandler.saveCounterIntoFile();
-				}
-				if (input.toUpperCase().charAt(0) == ('X')) {
-					/*
-					 * System.out.println("Deserializing the players list...");
-					 * System.out.println(DataHandler.deserializePlayersSet(new File("P1P2.ser")));
-					 * DataHandler.loadCountersFromFile();
-					 */
-					System.out.println("Got a game window close command");
-					gameOverComplete();
-				}
-				if (input.toUpperCase().charAt(0) == ('O')) {
-					System.out.println("Game is over, returning to the main menu");
-
-				}
-				// gameover testing
-			}
-		}).start(); // Retrieving a command from the queue (waits if it's empty)
+		}).start();
 	}
 
 	// processes a command from a Player
@@ -200,32 +185,31 @@ public class GameController implements ControllerInterface {
 		case 'R' -> moveInDirection(command.substring(1), "right");
 		case 'B' -> {
 			plantBomb(command.substring(1));
-			System.out.println("Got a plant bomb command for a queue");
+			logger.log(Level.INFO, "Got a plant bomb command for a queue");
 		}
 		case 'E' -> {
 			RemoteBombExplode(command.substring(1));
-			System.out.println("Got a plant bomb command for a queue");
+			logger.log(Level.INFO, "Got a remote bombs detonation command for a queue");
 		}
 
-		default -> System.out.println("Unknown command");
+		default -> logger.log(Level.INFO, "Unknown command");
 		}
 		return true;
 	}
 
-	// movement in the direction specified
+	// movement in the direction specified: up, down, right or left
 	private boolean moveInDirection(String playerId, String direction) {
-		// find a player by Id
+		// finds a player by Id
 		Player playerFound = game.findPlayerById(playerId);
-
+		// if not
 		if (playerFound == null)
 			return false;
-
+		// current coords
 		int currentX = playerFound.getCoordinates().getX();
 		int currentY = playerFound.getCoordinates().getY();
-
+		// new coords parts declaration
 		int newX = 0;
 		int newY = 0;
-
 		// REVERSE modifier implementation
 		if (playerFound.findModifierByType(ModifierType.REVERSE_CONTROLS) != null) {
 			switch (direction) {
@@ -236,7 +220,6 @@ public class GameController implements ControllerInterface {
 			default -> System.out.println("Unknown command. Can't be reversed");
 			}
 		}
-
 		// calculating a new coordinate
 		switch (direction) {
 		case "right" -> {
@@ -260,27 +243,23 @@ public class GameController implements ControllerInterface {
 			break;
 		}
 		}
-
 		Coordinates newCoordinates = new Coordinates(newX, newY);
 		// check if the new X coordinate is free for occupation
-		if (!isFreeToOccupy(newCoordinates)
-				|| bombByCoordinates(newCoordinates) != null /* || isAnyPlayerHere(newCoordinates) */) {
-			System.out.println("!isFreeToOccupy(newCoordinates)" + "=" + !isFreeToOccupy(newCoordinates));
-			System.out.println("AnyPlayerHere(newCoordinates)" + "=" + isAnyPlayerHere(newCoordinates));
-			System.out.println("Move from coordinates (" + currentX + ", " + currentY + ") to coordinates ("
+		if (!isFreeToOccupy(newCoordinates) || bombByCoordinates(newCoordinates) != null) {
+			logger.log(Level.INFO, "!isFreeToOccupy(newCoordinates)" + "=" + !isFreeToOccupy(newCoordinates));
+			logger.log(Level.INFO, "Move from coordinates (" + currentX + ", " + currentY + ") to coordinates ("
 					+ newCoordinates.getX() + ", " + newCoordinates.getY() + ")");
-			System.out.println("newCoordinates = " + newCoordinates);
-
+			logger.log(Level.INFO, "AnyPlayerHere(newCoordinates)" + "=" + isAnyPlayerHere(newCoordinates));
+			logger.log(Level.INFO, "newCoordinates = " + newCoordinates);
 			return false;
 		}
 		Coordinates oldCoordinates = new Coordinates(currentX, currentY);
-
 		// getting a modifier
 		Modifier modifierFound = modifierByCoordinates(newCoordinates);
 		if (modifierFound != null) {
 			takeModifier(playerFound, modifierFound);
 		}
-
+		// move sprites
 		Platform.runLater(() -> {
 			// updating the player's sprite in the view
 			gameView.moveSprite(oldCoordinates, newCoordinates, playerFound);
@@ -288,10 +267,10 @@ public class GameController implements ControllerInterface {
 			// raysBombByCoordinates(newCoordinates));
 			// if player moves to the active rays he dies
 		});
+		// if players touches an explosion rays, he dies
 		if (raysBombByCoordinates(newCoordinates)) {
 			killPlayer(playerFound);
 		}
-
 		// actually move the player
 		switch (direction) {
 		case "right" -> {
@@ -307,24 +286,15 @@ public class GameController implements ControllerInterface {
 			playerFound.getCoordinates().setY(newY);
 		}
 		default -> {
-			System.out.println("No such direction!");
+			logger.log(Level.INFO, "No such direction!");
 			break;
 		}
 		}
-
 		return true;
 	}
 
-	// game process
-
-	// Draw the objects
-	private static void playersViewUpdate() {
-		// send Players' Data
-		// actually call the View's method
-
-	}
-
 	// receiving input commands from VIEW
+	
 	@Override
 	public void playerMoveUp(String playerId) {
 		commandQueue.add("U" + playerId);
@@ -355,6 +325,7 @@ public class GameController implements ControllerInterface {
 		commandQueue.add("E" + playerId);
 	}
 
+	//
 	@Override
 	public String getPlayerIdByNumber(int playerNumber) {
 		if (game.getPlayers().isEmpty()) {
@@ -436,13 +407,13 @@ public class GameController implements ControllerInterface {
 		game.addBomb(newBomb);
 
 		// setting up a timer for bomb to change its look
-		ScheduledFuture taskLook = schedulerForExplosion.schedule(() -> {
-			Platform.runLater(() -> {
-				gameView.plantBomb(newBomb);
-			});
-			System.out.println("Requested the bomb to change its look");
-		}, DEFAULT_TIME_TILL_EXPLOSION / 2, TimeUnit.SECONDS);
-		game.putExplosionTaskByBombId(newBomb.getId(), taskLook);
+//		ScheduledFuture taskLook = schedulerForExplosion.schedule(() -> {
+//			Platform.runLater(() -> {
+//				gameView.plantBomb(newBomb);
+//			});
+//			System.out.println("Requested the bomb to change its look");
+//		}, DEFAULT_TIME_TILL_EXPLOSION / 2, TimeUnit.SECONDS);
+//		game.putExplosionTaskByBombId(newBomb.getId(), taskLook);
 
 		// setting up a timer for bomb to explode
 		ScheduledFuture taskExplode = schedulerForExplosion.schedule(() -> explodeBomb(newBomb.getId()),
@@ -738,7 +709,10 @@ public class GameController implements ControllerInterface {
 			gameView.killPlayer(playerFound);
 		});
 		// setting up a timer for game over
-		schedulerForGameOver.schedule(() -> gameOver(), GAME_OVER_TIME, TimeUnit.SECONDS);
+		// gameover can be only once - validation
+		if (gameOverTask == null) {
+			gameOverTask = schedulerForGameOver.schedule(() -> gameOver(), GAME_OVER_TIME, TimeUnit.SECONDS);
+		}
 		return true;
 	}
 
@@ -783,12 +757,12 @@ public class GameController implements ControllerInterface {
 	// returns the bomb that has its rays at the coordinates specified
 	public boolean raysBombByCoordinates(Coordinates coordinates) {
 		for (Bomb bomb : game.getBombsExploded()) {
-			//System.out.println(bomb.getRays());
+			// System.out.println(bomb.getRays());
 			for (Coordinates raysCoords : bomb.getRays()) {
-				System.out.println(raysCoords);
-				System.out.println(coordinates);
+				// System.out.println(raysCoords);
+				// System.out.println(coordinates);
 				if (raysCoords.getX() == coordinates.getX() && raysCoords.getY() == coordinates.getY()) {
-					System.err.println("Player met explosion rays at the point " + coordinates);
+					// System.err.println("Player met explosion rays at the point " + coordinates);
 					return true;
 				}
 			}
@@ -859,33 +833,24 @@ public class GameController implements ControllerInterface {
 	// sets up a playersSet to play next
 	@Override
 	public void setPlayers(ArrayList<Player> players) {
-		if (players == null) {
+		if (players == null || players.isEmpty()) {
 			return;
 		}
 
 		// if the method isn't called from the application start
-		if (playersSet != null) {
-			System.out.println("PlayersSet != null. Saving playersSet into File");
+		// System.out.println("Inside setPlayers playersSet.isEmpty() " +
+		// playersSet.isEmpty());
+		if (!playersSet.isEmpty()) {
+			// System.out.println("PlayersSet != null. Saving playersSet into File");
 			// saving playerSet as the lastPlayerSet into the File
 			DataHandler.saveLastPlayersSet(players);
 			// saving playerSet as a regular playerSet into the File
 			DataHandler.serializePlayersSet(players);
-			// calculating max counter number and updating the Player counter to the max
-			// value
-			int maxId = Player.getCounter();
-			for (Player player : players) {
-				int playerCount = Integer.parseInt(player.getId().substring(1));
-				if (maxId < playerCount) {
-					maxId = playerCount;
-				}
-			}
-			if (maxId != Player.getCounter()) {
-				Player.setCounter(maxId);
-			}
 		}
 		// setting up the playerSet value
 		playersSet = players;
-
+		System.out.println("Saving counter from setPlayers, setting up the value =  " + Player.getCounter());
+		DataHandler.saveCounterIntoFile();
 	}
 
 	@Override
@@ -933,6 +898,20 @@ public class GameController implements ControllerInterface {
 			str.append(player.getId());
 		}
 		return str + "";
+	}
+
+	private void resetLists() {
+		commandQueue = new LinkedBlockingQueue<>();
+		schedulerForExplosion = Executors.newScheduledThreadPool(10);
+		schedulerForRaysOff = Executors.newScheduledThreadPool(10);
+		schedulerForGameOver = Executors.newScheduledThreadPool(1);
+		schedulerForModifiersOff = Executors.newScheduledThreadPool(10);
+	}
+
+	@Override
+	public void exitApp() {
+		System.out.println("Exiting the App...");
+		System.exit(0);
 	}
 
 }

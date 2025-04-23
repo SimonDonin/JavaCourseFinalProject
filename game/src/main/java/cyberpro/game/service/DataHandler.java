@@ -18,7 +18,7 @@ import cyberpro.game.model.Game;
 import cyberpro.game.model.Player;
 
 public class DataHandler {
-	private static final String BASE = "D:\\Java\\JavaCourseFinalProject";
+	private static final String BASE = "C:\\Java\\JavaCourseFinalProject";
 	private static String LAST_PLAYERSET_FILENAME = "lastPlayerSet";
 	private static final String bombermenFolder = "bombermen";
 	private static String bombermenFile = "game.ser";
@@ -34,7 +34,7 @@ public class DataHandler {
 	}
 
 	// saves last playersSetId into the special file
-	public static void saveLastPlayersSet (ArrayList<Player> playersSet) {
+	public static void saveLastPlayersSet(ArrayList<Player> playersSet) {
 		if (playersSet == null) {
 			return;
 		}
@@ -49,7 +49,7 @@ public class DataHandler {
 			// creating streams for serializing lastPlayersSet
 			FileOutputStream fileOutStream = new FileOutputStream(lastPlayersSetFile);
 			ObjectOutputStream outStream = new ObjectOutputStream(fileOutStream);
-			// writing  lastPlayersSet into the file
+			// writing lastPlayersSet into the file
 			outStream.writeObject(playersSet);
 			// closing the streams
 			fileOutStream.close();
@@ -60,16 +60,16 @@ public class DataHandler {
 			e.printStackTrace();
 		}
 	}
-	
+
 	// returns the last PlayerSet
 	public static ArrayList<Player> getLastPlayersSet() {
-			// getting last PlayersSet's Id by import from the special file
+		// getting last PlayersSet's Id by import from the special file
 		String lastPlayersSetPath = BASE + "\\" + bombermenFolder + "\\" + LAST_PLAYERSET_FILENAME + ".ser";
 		// creating folders for path BASE
 		checkPath();
-		
+
 		File lastPlayersSetFile = new File(lastPlayersSetPath);
-		try { 
+		try {
 			// if a source file doesn't exist
 			if (!lastPlayersSetFile.isFile()) {
 				return null;
@@ -93,7 +93,7 @@ public class DataHandler {
 		} catch (IOException e) {
 			e.printStackTrace();
 			return null;
-		} catch (ClassNotFoundException e) { 
+		} catch (ClassNotFoundException e) {
 			e.printStackTrace();
 			return null;
 		}
@@ -117,7 +117,7 @@ public class DataHandler {
 				return false;
 			}
 			// creating a stream for writing counters file
-			FileWriter writeFile = new FileWriter(counterFilePath);
+			FileWriter writeFile = new FileWriter(counterFile);
 			writeFile.append(Player.getCounter() + "");
 			writeFile.flush();
 			writeFile.close();
@@ -168,36 +168,35 @@ public class DataHandler {
 	}
 
 	// serialize playersSet
-		public static boolean serializePlayersSet(ArrayList<Player> players) {
-			// creating folders for path BASE
-			checkPath();
-			// specifying a file's name
-			bombermenFile = GameController.getPlayersSetId(players) + ".ser";
-			File playersFile = new File(BASE + "\\" + bombermenFolder + "\\" + bombermenFile);
-			try {
-				// creating file for players
-				playersFile.createNewFile();
-				// creating streams for serializing players
-				FileOutputStream fileOutStream = new FileOutputStream(playersFile);
-				ObjectOutputStream outStream = new ObjectOutputStream(fileOutStream);
-				// writing broker object into the file
-				outStream.writeObject(players);
-				// closing the streams
-				fileOutStream.close();
-				outStream.close();
-			} catch (FileNotFoundException e) {
-				e.printStackTrace();
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
-			return true;
-		}
-
-	
-	public static ArrayList<Player> deserializePlayersSet(File bomberFile) {
-		String filePath = BASE + "\\" + bombermenFolder + "\\" + bomberFile;
+	public static boolean serializePlayersSet(ArrayList<Player> players) {
 		// creating folders for path BASE
 		checkPath();
+		// specifying a file's name
+		bombermenFile = GameController.getPlayersSetId(players) + ".ser";
+		File playersFile = new File(BASE + "\\" + bombermenFolder + "\\" + bombermenFile);
+		try {
+			// creating file for players
+			playersFile.createNewFile();
+			// creating streams for serializing players
+			FileOutputStream fileOutStream = new FileOutputStream(playersFile);
+			ObjectOutputStream outStream = new ObjectOutputStream(fileOutStream);
+			// writing broker object into the file
+			outStream.writeObject(players);
+			// closing the streams
+			fileOutStream.close();
+			outStream.close();
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		return true;
+	}
+
+	public static ArrayList<Player> deserializePlayersSet(File bomberFile) {
+		String filePath = bomberFile.getAbsolutePath();//BASE + "\\" + bombermenFolder + "\\" + bomberFile;
+		// creating folders for path BASE
+		//checkPath();
 		File bombermenFile = new File(filePath);
 		try { // if a source file doesn't exist
 			if (!bombermenFile.isFile()) {
@@ -228,7 +227,8 @@ public class DataHandler {
 		return null;
 	}
 
-	//returns an ArrayList of all the playersSets from all the files from the bombermen folder
+	// returns an ArrayList of all the playersSets from all the files from the
+	// bombermen folder
 	public static ArrayList<ArrayList<Player>> deserializePlayersSets() {
 		String filePath = BASE + "\\" + bombermenFolder;
 		// creating folders for path BASE
@@ -237,16 +237,20 @@ public class DataHandler {
 		File dir = new File(filePath);
 		List<File> filesList = new ArrayList<>();
 		for (File file : dir.listFiles()) {
-			if (file.isFile())
+			if (file.isFile() && file.getName().charAt(0) == 'P')
 				filesList.add(file);
-		}		
+		}
+		System.out.println(filesList);
 		// declaring a variable for collecting deserialized playersSets
 		ArrayList<ArrayList<Player>> playersSets = new ArrayList<ArrayList<Player>>();
-		//deserializing every playersSet from each file
+		// deserializing every playersSet from each file
 		ArrayList<Player> playersSet = new ArrayList<Player>();
 		for (File file : filesList) {
 			playersSet = deserializePlayersSet(file);
-			playersSets.add(playersSet);
+			System.out.println("For file " + file + " playersSet = " + playersSet);
+			if (playersSet != null) {
+				playersSets.add(playersSet);
+			}
 		}
 		return playersSets;
 	}

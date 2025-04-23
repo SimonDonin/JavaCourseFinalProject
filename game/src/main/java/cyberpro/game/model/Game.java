@@ -71,7 +71,8 @@ public class Game {
 		return board;
 	}
 
-	// create a pair (bombId, scheduler object) to be able to cancel the scheduler later
+	// create a pair (bombId, scheduler object) to be able to cancel the scheduler
+	// later
 	public void putExplosionTaskByBombId(String bombId, ScheduledFuture scheduledTask) {
 		if (explosionTasksByBombId.containsKey(bombId)) {
 			return;
@@ -79,14 +80,14 @@ public class Game {
 		explosionTasksByBombId.put(bombId, scheduledTask);
 		System.out.println("Scheduled an explosion task for the bombId = " + bombId);
 	}
-	
+
 	public ScheduledFuture extractExplosionTaskByBombId(String bombId) {
 		ScheduledFuture scheduledTask = explosionTasksByBombId.get(bombId);
 		System.out.println("A scheduled task for the bomb with bombId = " + bombId + " was extracted successfully");
 		explosionTasksByBombId.remove(bombId);
 		return scheduledTask;
-		}
-	
+	}
+
 	public Bomb findBombById(String Id) {
 		if (bombs == null)
 			return null;
@@ -202,7 +203,7 @@ public class Game {
 		this.bombsExploded.add(bomb);
 		return true;
 	}
-	
+
 	public Bomb findExplodedBombById(String Id) {
 		if (bombsExploded == null)
 			return null;
@@ -227,16 +228,16 @@ public class Game {
 		System.out.println("Bomb " + bomb.getId() + " was removed from the exploded bombs list");
 		this.bombsExploded.remove(bomb);
 		return true;
-		
+
 	}
-	
+
 	public void printPlayers() {
 		for (Player player : players) {
 			System.out.println(player);
 		}
 	}
 
-	public void playersRessurect() {
+	public void playersReset() {
 		if (players == null) {
 			return;
 		}
@@ -244,7 +245,76 @@ public class Game {
 			if (!player.isAlive()) {
 				player.setAlive(true);
 			}
+			player.resetModifiers();
 		}
+		placePlayersToFreePlace();
 	}
 
+	public boolean isFreeSpaceNear(Coordinates coordinates) {
+		if (coordinates == null) {
+			return false;
+		}
+		// traverse along X
+		for (int i = -1; i <= 1 && i != 0; i++) {
+			int newX = coordinates.getX() + i;
+			if (newX <= 0 || newX > board.getSize() - 1) {
+				continue;
+			}
+			if (board.getCell(newX, coordinates.getY()) == TileType.FLOOR) {
+				return true;
+			}
+
+			// traverse along Y
+			for (int j = -1; j <= 1 && j != 0; j++) {
+				int newY = coordinates.getY() + j;
+				if (newY <= 0 || newY > board.getSize() - 1) {
+					continue;
+				}
+				if (board.getCell(coordinates.getX(), newY) == TileType.FLOOR) {
+					return true;
+				}
+				System.out.println("Coords " + coordinates + " have no free space near");
+				return false;
+			}
+		}
+		return false;
+	}
+	
+	private void placePlayersToFreePlace() {
+		boolean isPlayer1Placed = false;
+		boolean isPlayer2Placed = false;
+		if (players == null || players.isEmpty()) {
+			return;
+		}
+		// player 1 processing
+		Player player1 = players.get(0);
+		for (int i = 0; i <= board.getSize()/2; i++) {
+			if (isPlayer1Placed) {
+				break;
+			}
+			for(int j = 0; j <= board.getSize()/2; j++) {
+				if (board.getCell(i, j) == TileType.FLOOR && isFreeSpaceNear(new Coordinates(i, j))) {
+					isPlayer1Placed = true;
+					player1.setCoordinates(new Coordinates(i, j));
+					break;
+				}
+			}
+		}
+		
+		// player 2 processing
+				Player player2 = players.get(1);
+				for (int i = 0; i <= board.getSize()/2; i++) {
+					if (isPlayer2Placed) {
+						break;
+					}
+					for(int j = 0; j <= board.getSize()/2; j++) {
+						if (board.getCell(board.getSize() - i - 1, board.getSize() - j - 1) == TileType.FLOOR && isFreeSpaceNear(new Coordinates(board.getSize() - i - 1, board.getSize() - j - 1))) {
+							isPlayer2Placed = true;
+							player2.setCoordinates(new Coordinates(board.getSize() - i - 1, board.getSize() - j - 1));
+							break;
+						}
+					}
+				}
+	}
+	
 }

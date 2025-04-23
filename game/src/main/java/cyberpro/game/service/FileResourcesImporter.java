@@ -18,8 +18,8 @@ public class FileResourcesImporter {
 		
 		System.err.println("level = " + level);
 		
-		InputStream is = getClass().getResourceAsStream(level);
-		if (is == null) {
+		try (InputStream is = getClass().getResourceAsStream(level);)
+		{if (is == null) {
 			throw new FileNotFoundException("Resource not found: " + levelName);
 		}
 		InputStreamReader isr = new InputStreamReader(is);
@@ -32,7 +32,7 @@ public class FileResourcesImporter {
 		while ((line = reader.readLine()) != null) {
 			lines.add(line);
 			System.out.println(line);
-		}
+		} 
 
 		int rows = lines.size();
 		int cols = lines.get(0).length();
@@ -40,6 +40,10 @@ public class FileResourcesImporter {
 			System.out.println("Board is not square");
 		}
 
+		// closing all streams
+		isr.close();
+		reader.close();
+		
 		Board board = new Board(levelName, rows);
 
 		for (int y = 0; y < rows; y++) {
@@ -59,6 +63,8 @@ public class FileResourcesImporter {
 			}
 		}
 		return board;
+	}
+		
 	}
 
 }

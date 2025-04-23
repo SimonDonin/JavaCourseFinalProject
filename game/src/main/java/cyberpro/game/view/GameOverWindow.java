@@ -41,5 +41,7 @@ public class GameOverWindow {
 
         window.setScene(scene);
         window.showAndWait();
+        window.requestFocus();
+
     }
 }
