@@ -1,4 +1,3 @@
-Ты абсолютно прав, что в GitHub используется язык разметки Markdown для оформления README файлов. Давай я переработаю текст, чтобы он соответствовал стандартам GitHub и выглядел красиво:
 # **2D Retro Game**
 
 ![Java](https://img.shields.io/badge/Java-ED8B00?style=for-the-badge&logo=java&logoColor=white)
