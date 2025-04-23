@@ -40,6 +40,10 @@ public class GameOverWindow {
         scene.getStylesheets().add(GameOverWindow.class.getResource("gameover.css").toExternalForm());
 
         window.setScene(scene);
+        window.setIconified(false);
+        window.toFront();
+        window.setAlwaysOnTop(true);   
+        // All this magic like to send the "Game over" window on the top of other windows
         window.showAndWait();
         window.requestFocus();
 

@@ -57,10 +57,11 @@ public class MainMenu extends Application {
 		VBox modeSelection = new VBox(5, modeLabel, onePlayer, twoPlayers);
 		modeSelection.setAlignment(Pos.CENTER);
 
+
 		// ListView with .txt level files
 		Label levelsLabel = new Label("Available Levels:");
 		levelsLabel.getStyleClass().add("mode-label");
-
+  
 		ListView<String> levelListView = new ListView<>();
 		ObservableList<String> levelFileNames = FXCollections.observableArrayList();
 
@@ -77,6 +78,7 @@ public class MainMenu extends Application {
 		}
 		levelListView.setItems(levelFileNames);
 		levelListView.setMaxHeight(400);
+
 
 		// Selection handler
 		levelListView.getSelectionModel().selectedItemProperty().addListener((obs, oldVal, newVal) -> {
