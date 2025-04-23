@@ -474,39 +474,39 @@ public class GameView {
         // Now we have min/max coordinates for blast wave
 
         // Now we have a ray length for every direction
-        blastCloud.add(drawBlast(blastCenter, centerX, centerY));
+        drawBlast(blastCenter, centerX, centerY);
         if (minX < centerX) {
-            blastCloud.add(drawBlast(blastLeftTip, minX, centerY));
+            drawBlast(blastLeftTip, minX, centerY);
         }
         if (maxX > centerX) {
-            blastCloud.add(drawBlast(blastRightTip, maxX, centerY));
+            drawBlast(blastRightTip, maxX, centerY);
         }
         if (minY < centerY) {
-            blastCloud.add(drawBlast(blastTopTip, centerX, minY));
+            drawBlast(blastTopTip, centerX, minY);
         }
         if (maxY > centerY) {
-            blastCloud.add(drawBlast(blastBottomTip, centerX, maxY));
+            drawBlast(blastBottomTip, centerX, maxY);
         }
         // Do not draw ray if it is close to a wall
 
         if ((centerX - minX) > 1) {
             for (int x = (centerX - 1); x > minX; x--) {
-                blastCloud.add(drawBlast(blastLeftRay, x, centerY));
+                drawBlast(blastLeftRay, x, centerY);
             }
         }
         if ((maxX - centerX) > 1) {
             for (int x = (centerX + 1); x < maxX; x++) {
-                blastCloud.add(drawBlast(blastRightRay, x, centerY));
+                drawBlast(blastRightRay, x, centerY);
             }
         }
         if ((centerY - minY) > 1) {
             for (int y = (centerY - 1); y > minY; y--) {
-                blastCloud.add(drawBlast(blastBottomRay, centerX, y));
+                drawBlast(blastBottomRay, centerX, y);
             }
         }
         if ((maxY - centerY) > 1) {
             for (int y = (centerY + 1); y < maxY; y++) {
-                blastCloud.add(drawBlast(blastBottomRay, centerX, y));
+                drawBlast(blastBottomRay, centerX, y);
             }
         }
         // Do not draw rays if ray length is < 2
@@ -527,7 +527,7 @@ public class GameView {
         // Remove all blast information from a set after it was removed from screen
     }
 
-    private ImageView drawBlast(Image img, int x, int y) {
+    private void drawBlast(Image img, int x, int y) {
         ImageView blastView;
         blastView = new ImageView(img);
         blastView.setFitWidth(TILE_SIZE);
@@ -535,7 +535,6 @@ public class GameView {
         // blastCloud.add(blastView);
         // Add new element of blast to an array of all blast tiles
         grid.add(blastView, x, y);
-        return blastView;
     }
 
     public void plantMod(Modifier mod) {
