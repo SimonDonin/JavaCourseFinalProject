@@ -535,8 +535,10 @@ public class GameView {
 	public void removeMod(Modifier mod) {
 		// Place a code to remove modifier if it was taken
 		ImageView modView = modifierSprites.get(mod.getId());
+                modifierSprites.remove(mod.getId());
+                // Remove unused mod from a Set (garbage collector do not remove unused objects from inside collections)
 		grid.getChildren().remove(modView);
-		// We just remove a sprite from a game board. No additional actions is required
+		// We just remove a mod sprite from a game board.
 		ImageView floorView = new ImageView(floorImage);
 		floorView.setFitHeight(TILE_SIZE);
 		floorView.setFitWidth(TILE_SIZE);

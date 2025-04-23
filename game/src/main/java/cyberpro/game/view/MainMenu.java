@@ -118,7 +118,7 @@ public class MainMenu extends Application {
             }
         });
 
-        exitButton.setOnAction(e -> stage.close());
+        exitButton.setOnAction(e -> System.exit(0));
 
         // Layout
         VBox menuLayout = new VBox(20);
