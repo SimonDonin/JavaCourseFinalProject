@@ -16,7 +16,6 @@ public class Player implements Serializable {
 	private String id;
 	private static int counter = 0;
 	private String name;
-	private int hitpoints;
 	private Coordinates coordinates;
 	private boolean isAlive;
 	private int speed;
@@ -30,7 +29,6 @@ public class Player implements Serializable {
 	public Player(String name, Coordinates coordinates) {
 		this.id = "P" + ++counter;
 		this.name = name;
-		this.hitpoints = 100;
 		this.coordinates = coordinates;
 		this.speed = 100;
 		this.color = Colors.GREEN;
@@ -64,6 +62,18 @@ public class Player implements Serializable {
 
 	public Coordinates getCoordinates() {
 		return coordinates;
+	}
+
+	public int getWinsCount() {
+		return winsCount;
+	}
+
+	public int getLossesCount() {
+		return lossesCount;
+	}
+
+	public int getDrawsCount() {
+		return drawsCount;
 	}
 
 	public void setCoordinates(Coordinates coordinates) {
@@ -119,6 +129,7 @@ public class Player implements Serializable {
 				+ ", draws = " + drawsCount + "\n";
 	}
 
+	// kills the player
 	public boolean kill() {
 		if (!isAlive())
 			return false;
@@ -127,6 +138,7 @@ public class Player implements Serializable {
 		return true;
 	}
 
+	// finds the player's modifiers by id
 	public Modifier findModifierById(String Id) {
 		if (playerModifiers == null)
 			return null;
@@ -138,6 +150,7 @@ public class Player implements Serializable {
 		return null;
 	}
 
+	// finds a player's modifier by modifier's type
 	public Modifier findModifierByType(ModifierType modifierType) {
 		if (playerModifiers == null)
 			return null;
@@ -149,6 +162,7 @@ public class Player implements Serializable {
 		return null;
 	}
 
+	// counts number of modifiers by the type provided
 	public int countModifiersByType(ModifierType modifierType) {
 		if (playerModifiers == null)
 			return -1;
@@ -161,6 +175,7 @@ public class Player implements Serializable {
 		return count;
 	}
 
+	// calculates the player's speed
 	public void calculatePlayerSpeed() {
 		int speedInModifiers = 0;
 		if (findModifierByType(ModifierType.SPEED_UP) != null) {
@@ -180,5 +195,4 @@ public class Player implements Serializable {
 	public void draw() {
 		drawsCount++;
 	}
-
 }
