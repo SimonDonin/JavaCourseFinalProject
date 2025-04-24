@@ -3,6 +3,7 @@ package cyberpro.game.model;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Set;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 import cyberpro.game.controller.ModifierType;
 
@@ -15,12 +16,11 @@ public class Player implements Serializable {
 	private String id;
 	private static int counter = 0;
 	private String name;
-	private int hitpoints;
 	private Coordinates coordinates;
 	private boolean isAlive;
 	private int speed;
 	private Colors color;
-	private ArrayList<Modifier> playerModifiers;
+	private CopyOnWriteArrayList<Modifier> playerModifiers;
 	private int winsCount = 0;
 	private int lossesCount = 0;
 	private int drawsCount = 0;
@@ -29,11 +29,10 @@ public class Player implements Serializable {
 	public Player(String name, Coordinates coordinates) {
 		this.id = "P" + ++counter;
 		this.name = name;
-		this.hitpoints = 100;
 		this.coordinates = coordinates;
 		this.speed = 100;
 		this.color = Colors.GREEN;
-		this.playerModifiers = new ArrayList<>();
+		this.playerModifiers = new CopyOnWriteArrayList<>();
 		this.isAlive = true;
 	}
 
@@ -63,6 +62,26 @@ public class Player implements Serializable {
 
 	public Coordinates getCoordinates() {
 		return coordinates;
+	}
+
+	public int getWinsCount() {
+		return winsCount;
+	}
+
+	public int getLossesCount() {
+		return lossesCount;
+	}
+
+	public int getDrawsCount() {
+		return drawsCount;
+	}
+
+	public void setCoordinates(Coordinates coordinates) {
+		this.coordinates = coordinates;
+	}
+
+	public void resetModifiers() {
+		playerModifiers = new CopyOnWriteArrayList<>();
 	}
 
 	public boolean moveDown() {
@@ -104,11 +123,13 @@ public class Player implements Serializable {
 
 	@Override
 	public String toString() {
-		return "Player " + name + ":" + "\n\tcoordinates: [" + coordinates.getX() + ", " + coordinates.getY() + "]"
-				+ "\n\tspeed: " + speed + "\n\tcolor: " + color + "\n\t" + playerModifiers.toString()
-				+ "\n\t Score: wins = " + winsCount + ", losses  = " + lossesCount + ", draws = " + drawsCount + "\n";
+		return "Player " + "id =" + id + " " + name + ":" + "\n\tcoordinates: [" + coordinates.getX() + ", "
+				+ coordinates.getY() + "]" + "\n\tspeed: " + speed + "\n\tcolor: " + color + "\n\t"
+				+ playerModifiers.toString() + "\n\t Score: wins = " + winsCount + ", losses  = " + lossesCount
+				+ ", draws = " + drawsCount + "\n";
 	}
 
+	// kills the player
 	public boolean kill() {
 		if (!isAlive())
 			return false;
@@ -117,6 +138,7 @@ public class Player implements Serializable {
 		return true;
 	}
 
+	// finds the player's modifiers by id
 	public Modifier findModifierById(String Id) {
 		if (playerModifiers == null)
 			return null;
@@ -128,6 +150,7 @@ public class Player implements Serializable {
 		return null;
 	}
 
+	// finds a player's modifier by modifier's type
 	public Modifier findModifierByType(ModifierType modifierType) {
 		if (playerModifiers == null)
 			return null;
@@ -139,6 +162,7 @@ public class Player implements Serializable {
 		return null;
 	}
 
+	// counts number of modifiers by the type provided
 	public int countModifiersByType(ModifierType modifierType) {
 		if (playerModifiers == null)
 			return -1;
@@ -151,6 +175,7 @@ public class Player implements Serializable {
 		return count;
 	}
 
+	// calculates the player's speed
 	public void calculatePlayerSpeed() {
 		int speedInModifiers = 0;
 		if (findModifierByType(ModifierType.SPEED_UP) != null) {
@@ -170,5 +195,4 @@ public class Player implements Serializable {
 	public void draw() {
 		drawsCount++;
 	}
-
 }

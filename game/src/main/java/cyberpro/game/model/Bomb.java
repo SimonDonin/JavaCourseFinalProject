@@ -1,7 +1,5 @@
 package cyberpro.game.model;
 
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -14,26 +12,14 @@ public class Bomb {
 	private String playerId;
 	private Coordinates coordinates;
 	private boolean distantExplosion;
-	private Date explosionTime;
-	private int raysRange;
 	private Date raysOffDate;
 	private CopyOnWriteArrayList<Coordinates> rays;
-
-	/*
-	 * A player plants a bomb and the following input values are passing on:
-	 * playerId, coordinates, if it is a distantExplosion, exact explosionTime,
-	 * raysRange. raysOffDate can't be specified at the moment as it will be defined
-	 * at the explosion moment only. The explosion moment depends on a remote
-	 * detonation, so it may vary.
-	 */
 
 	public Bomb(String playerId, Coordinates coordinates, boolean distantExplosion, Date explosionTime) {
 		this.id = "B" + ++counter;
 		this.playerId = playerId;
 		this.coordinates = coordinates;
 		this.distantExplosion = distantExplosion;
-		this.explosionTime = explosionTime;
-		this.raysRange = DEFAULT_RAYS_RANGE;
 		this.rays = new CopyOnWriteArrayList<Coordinates>();
 	}
 
@@ -61,6 +47,7 @@ public class Bomb {
 		return distantExplosion;
 	}
 
+	// adds coordinates to the explosion rays collection for the bomb
 	public boolean addToRays(Coordinates coordinates) {
 		System.out.println("Adding rays coordinate " + coordinates);
 		for (Coordinates coords : rays) {
@@ -80,26 +67,16 @@ public class Bomb {
 		return coordinates;
 	}
 
-	// transforms to an explosion and causes rays appearance till a specified time
-	// to make all the calculations the method should have
-	// input should include:
+	// explodes the bomb
 	public void explode() {
 		Date currentDate = new Date();
-
 		// A calendar for calculations
 		Calendar calendar = Calendar.getInstance();
 		calendar.setTime(currentDate);
-		calendar.add(Calendar.SECOND, DEFAULT_RAYS_DURATION); // Adding the time specified
-
+		// Adding the time specified
+		calendar.add(Calendar.SECOND, DEFAULT_RAYS_DURATION); 
 		// Getting a new date
 		raysOffDate = calendar.getTime();
-
-		// Formating the date
-		SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-		String formattedDate = dateFormat.format(raysOffDate);
-		System.out.println("New time: " + formattedDate);
-
-		System.out.println("The bomb id = " + id + " has exploded!");
 	}
 
 	@Override

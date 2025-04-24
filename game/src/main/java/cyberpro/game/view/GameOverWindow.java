@@ -45,5 +45,7 @@ public class GameOverWindow {
         window.setAlwaysOnTop(true);   
         // All this magic like to send the "Game over" window on the top of other windows
         window.showAndWait();
+        window.requestFocus();
+
     }
 }

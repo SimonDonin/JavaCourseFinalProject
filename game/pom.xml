@@ -42,6 +42,17 @@
   </dependencies>
   
   <build>
+  
+  <resources>
+        <resource>
+            <directory>src/main/resources</directory> <!-- Укажите папку с ресурсами -->
+            <includes>
+                <include>**/*</include> <!-- Включить все файлы -->
+            </includes>
+            <filtering>false</filtering> <!-- Отключение фильтрации ресурсов -->
+        </resource>
+    </resources>
+  
     <plugins>
         <!-- Плагин для компиляции -->
         <plugin>
