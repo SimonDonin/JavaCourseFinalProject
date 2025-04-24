@@ -91,7 +91,7 @@ The project follows a **layered architecture**:
 ### **Commands**
 1. Clone the repository:
    ```bash
-   git clone https://github.com/your_username/repository_name.git
+   git clone https://github.com/SimonDonin/JavaCourseFinalProject.git
    cd JavaCourseFinalProject/game
    mvn compile javafx:run
    ```
