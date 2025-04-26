@@ -6,6 +6,7 @@ package cyberpro.game.view;
 
 import cyberpro.game.controller.ControllerInterface;
 import cyberpro.game.controller.GameController;
+import cyberpro.game.model.Player;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.scene.control.ListView;
@@ -19,6 +20,7 @@ import javafx.scene.layout.*;
 import javafx.stage.Stage;
 import java.io.File;
 import java.util.Arrays;
+import java.util.ArrayList;
 
 /**
  *
@@ -28,6 +30,7 @@ public class MainMenu extends Application {
     
     private final ControllerInterface controller;
     private Stage stage;
+    ArrayList<Player> players;
 
     @Override
     public void start(Stage primaryStage) {
@@ -91,7 +94,18 @@ public class MainMenu extends Application {
         
         VBox levelSelection = new VBox(2, levelsLabel, levelListView);
         modeSelection.setAlignment(Pos.CENTER);
-
+        
+        Label player1 = new Label();
+        Label player2 = new Label();
+        
+        ArrayList<Player> players = controller.getPlayers();
+        //for (Player player : players) {
+        //    System.out.println(player.getName());
+        
+        //}
+        //player1.setText(players.getFirst().getName());
+        //player2.setText(players.getLast().getName());
+        //HBox playerStats = new HBox(2, player1, player2);
         // Buttons
         Button startButton = new Button("Start Game");
         Button mapEditorButton = new Button("Map Editor");
