@@ -101,7 +101,9 @@ public class GameController implements ControllerInterface {
 	public void mainMenu() {
 		// >>> Only until the target mechanism is ready in the GUI <<<
 		// playersSet initialization
-		setDefaultPlayers();
+		if (playersSet == null || playersSet.isEmpty()) {
+			setDefaultPlayers();
+		}
 		// starting the MainMenu window
 		Platform.startup(() -> {
 			Stage stage = new Stage();
@@ -125,8 +127,7 @@ public class GameController implements ControllerInterface {
 			gameProcess();
 		} catch (FileNotFoundException e) {
 			logger.log(Level.SEVERE, "Got a FileNotFoundException exception...");
-		} 
-		catch (Exception e) {
+		} catch (Exception e) {
 			logger.log(Level.SEVERE, "Got an unexpected exception...");
 		}
 	}
@@ -447,9 +448,9 @@ public class GameController implements ControllerInterface {
 		// calculating time for rays to disappear and Setting up a timer to do it
 		// eliminating the bomb from the exploded bombs list
 		schedulerForRaysOff.schedule(() -> {
-                    // !!! I put this code to rest bomb removal without redraw board
-			// draw();
-                        gameView.removeBlast(bombFound);
+			// !!! I put this code to rest bomb removal without redraw board
+			draw();
+			// gameView.removeBlast(bombFound);
 			game.fullRemove(bombFound);
 		}, Bomb.getDefaultRaysDuration(), TimeUnit.SECONDS);
 
@@ -545,7 +546,8 @@ public class GameController implements ControllerInterface {
 
 	// draws the GUI grid of the game level
 	public void draw() {
-		Platform.runLater(() -> gameView.drawGrid(game.getPlayers(), game.getBombs(), game.getModifiers()));
+		Platform.runLater(() -> gameView.drawGrid(game.getPlayers(), game.getBombs(), game.getModifiers(),
+				game.getBombsExploded()));
 	}
 
 	// validates if coordinates are inside the board
