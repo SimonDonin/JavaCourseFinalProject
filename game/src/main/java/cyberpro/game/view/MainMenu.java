@@ -6,6 +6,7 @@ package cyberpro.game.view;
 
 import cyberpro.game.controller.ControllerInterface;
 import cyberpro.game.controller.GameController;
+import cyberpro.game.model.Player;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.scene.control.ListView;
@@ -19,6 +20,7 @@ import javafx.scene.layout.*;
 import javafx.stage.Stage;
 import java.io.File;
 import java.util.Arrays;
+import java.util.ArrayList;
 
 /**
  *
@@ -28,6 +30,7 @@ public class MainMenu extends Application {
 
 	private final ControllerInterface controller;
 	private Stage stage;
+        ArrayList<Player> players;
 
 	@Override
 	public void start(Stage primaryStage) {
@@ -56,6 +59,9 @@ public class MainMenu extends Application {
 
 		VBox modeSelection = new VBox(5, modeLabel, onePlayer, twoPlayers);
 		modeSelection.setAlignment(Pos.CENTER);
+                
+                // Show players stats
+                // players = controller.getPlayers();
 
 
 		// ListView with .txt level files
