@@ -7,6 +7,7 @@ import javafx.scene.input.KeyEvent;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.GridPane;
+import javafx.scene.layout.Pane;
 import java.util.ArrayList;
 import javafx.application.Application;
 import javafx.geometry.Insets;
@@ -60,6 +61,8 @@ public class GameView {
 	// board
 	private GridPane grid;
 	// Create GridPane object to display all graphical objects.
+        private Pane blastPane = new Pane();
+        // blastPane is only for a blast
 	private TileType[][] gameBoard;
 	// Game board array. We have to recive it from a Controller
 	private boolean isPaused;
@@ -119,13 +122,15 @@ public class GameView {
 		this.stage = stage;
 		ArrayList<Player> players;
 
-		logger.setLevel(Level.FINE);
+		logger.setLevel(Level.ALL);
 		// Set Fine logging level for beta-testing.
 		// [TODO] Rise logging level to Level.WARRINGS for a final package
 		this.controller = controller; // Get Controller interface to call its methods
 		this.gameBoard = controller.getBoard().getCells(); // Get a link to the gameboard cells
 
 		grid = new GridPane();
+                StackPane root = new StackPane();
+                root.getChildren().addAll(grid, blastPane);
 		grid.setFocusTraversable(true); // Get keyboard input focus into a grid control
 
 		// Removing spacing and padding
@@ -137,7 +142,7 @@ public class GameView {
 		logger.log(Level.INFO, "Board size is {0}", gridWidth);
 
 		int sceneSize = TILE_SIZE * gridWidth; // или gridHeight, если нужна квадратная область
-		Scene scene = new Scene(grid, sceneSize, sceneSize);
+		Scene scene = new Scene(root, sceneSize, sceneSize);
 		// Alternative keyboard input interface
 		grid.setOnKeyPressed(this::handleKeyPress);
 		grid.setOnKeyReleased(this::handleKeyRelease);
@@ -440,7 +445,7 @@ public class GameView {
     }
 
     public void blastBomb(Bomb bomb, CopyOnWriteArrayList<Coordinates> blastWave) {
-        ArrayList<ImageView> blastCloud = null;
+        ArrayList<ImageView> blastCloud = new ArrayList<ImageView>();
 
         if (bomb == null) {
             logger.log(Level.WARNING, "No bomb");
@@ -474,67 +479,88 @@ public class GameView {
         // Now we have min/max coordinates for blast wave
 
         // Now we have a ray length for every direction
-        drawBlast(blastCenter, centerX, centerY);
+        drawBlast(blastCenter, centerX, centerY, blastCloud);
         if (minX < centerX) {
-            drawBlast(blastLeftTip, minX, centerY);
+            drawBlast(blastLeftTip, minX, centerY, blastCloud);
         }
         if (maxX > centerX) {
-            drawBlast(blastRightTip, maxX, centerY);
+            drawBlast(blastRightTip, maxX, centerY, blastCloud);
         }
         if (minY < centerY) {
-            drawBlast(blastTopTip, centerX, minY);
+            drawBlast(blastTopTip, centerX, minY, blastCloud);
         }
         if (maxY > centerY) {
-            drawBlast(blastBottomTip, centerX, maxY);
+            drawBlast(blastBottomTip, centerX, maxY, blastCloud);
         }
         // Do not draw ray if it is close to a wall
 
         if ((centerX - minX) > 1) {
             for (int x = (centerX - 1); x > minX; x--) {
-                drawBlast(blastLeftRay, x, centerY);
+                drawBlast(blastLeftRay, x, centerY, blastCloud);
             }
         }
         if ((maxX - centerX) > 1) {
             for (int x = (centerX + 1); x < maxX; x++) {
-                drawBlast(blastRightRay, x, centerY);
+                drawBlast(blastRightRay, x, centerY, blastCloud);
             }
         }
         if ((centerY - minY) > 1) {
             for (int y = (centerY - 1); y > minY; y--) {
-                drawBlast(blastBottomRay, centerX, y);
+                drawBlast(blastBottomRay, centerX, y, blastCloud);
             }
         }
         if ((maxY - centerY) > 1) {
             for (int y = (centerY + 1); y < maxY; y++) {
-                drawBlast(blastBottomRay, centerX, y);
+                drawBlast(blastBottomRay, centerX, y, blastCloud);
             }
         }
         // Do not draw rays if ray length is < 2
         // (so ray have only a tip or no ray)
         blastSprites.put(bomb.getId(), blastCloud);
+        logger.log(Level.FINE, "Blast cloud with ID {0} is saved for future removal.", bomb.getId());
         // All tiles of blast are keept at blastSprites to facilitate future removal
         // blastCloud is local. It will be re-inicialized during next run
 
     }
     
     public void removeBlast(Bomb bomb) {
-        ArrayList<ImageView> blastCloud;
-        blastCloud = blastSprites.get(bomb.getId());
-        for (ImageView blastElement : blastCloud) {
-            grid.getChildren().remove(blastElement);
+        ArrayList<ImageView> blastCloud = blastSprites.get(bomb.getId());
+        if (blastCloud == null) {
+            logger.log(Level.WARNING, "No blast found for bomb ID: " + bomb.getId());
+            return;
         }
+        blastPane.getChildren().removeAll(blastCloud);
+        System.out.println("Blast colud with bomb ID " + bomb.getId() + " are restored for removal.");
+        logger.log(Level.INFO, "Removing {0} blast sprites", blastCloud.size());
+        for (ImageView blastElement : blastCloud) {
+            // grid.getChildren().remove(blastElement);
+            blastPane.getChildren().remove(blastElement);
+            if (grid.getChildren().contains(blastElement)) {
+                logger.log(Level.FINE, "blastElement IS inside grid before removal");
+            } else {
+                logger.log(Level.FINE, "blastElement NOT FOUND inside grid before removal");
+            }
+        }
+        grid.getChildren().removeIf(node -> blastCloud.contains(node));
+        logger.log(Level.FINE, "Bomb is removed from screen sprites");
+        grid.requestLayout();
         blastSprites.remove(bomb.getId());
         // Remove all blast information from a set after it was removed from screen
     }
 
-    private void drawBlast(Image img, int x, int y) {
+    private void drawBlast(Image img, int x, int y, ArrayList<ImageView> blastCloud) {
         ImageView blastView;
         blastView = new ImageView(img);
         blastView.setFitWidth(TILE_SIZE);
         blastView.setFitHeight(TILE_SIZE);
         // blastCloud.add(blastView);
         // Add new element of blast to an array of all blast tiles
-        grid.add(blastView, x, y);
+        blastView.setLayoutX(x * TILE_SIZE);
+        blastView.setLayoutY(y * TILE_SIZE);
+        // Put coordinates in pixels
+        blastPane.getChildren().add(blastView);
+        blastCloud.add(blastView);
+        // We add each blast sprite to a ArrayList to use it after to remove these elements from the board
     }
 
     public void plantMod(Modifier mod) {

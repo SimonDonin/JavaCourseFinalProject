@@ -447,7 +447,9 @@ public class GameController implements ControllerInterface {
 		// calculating time for rays to disappear and Setting up a timer to do it
 		// eliminating the bomb from the exploded bombs list
 		schedulerForRaysOff.schedule(() -> {
-			draw();
+                    // !!! I put this code to rest bomb removal without redraw board
+			// draw();
+                        gameView.removeBlast(bombFound);
 			game.fullRemove(bombFound);
 		}, Bomb.getDefaultRaysDuration(), TimeUnit.SECONDS);
 
