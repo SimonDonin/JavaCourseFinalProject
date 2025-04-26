@@ -541,9 +541,9 @@ public class GameView {
                 logger.log(Level.FINE, "blastElement NOT FOUND inside grid before removal");
             }
         }
-        grid.getChildren().removeIf(node -> blastCloud.contains(node));
+        blastPane.getChildren().removeIf(node -> blastCloud.contains(node));
         logger.log(Level.FINE, "Bomb is removed from screen sprites");
-        grid.requestLayout();
+        blastPane.requestLayout();
         blastSprites.remove(bomb.getId());
         // Remove all blast information from a set after it was removed from screen
     }
