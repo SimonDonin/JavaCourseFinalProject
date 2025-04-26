@@ -335,7 +335,7 @@ public class GameView {
 		gameBoard = board;
 	}
 
-	public void drawGrid(ArrayList<Player> players, CopyOnWriteArrayList<Bomb> bombs, ArrayList<Modifier> modifiers) {
+	public void drawGrid(ArrayList<Player> players, CopyOnWriteArrayList<Bomb> bombs, ArrayList<Modifier> modifiers, ArrayList<Bomb> blast) {
 		grid.getChildren().clear();
 		// We need to clear all grid. GridPane do not allow duplicated nodes
 		for (int row = 0; row < gridWidth; row++) {
