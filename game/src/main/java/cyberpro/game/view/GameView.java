@@ -416,7 +416,7 @@ public class GameView {
 		default -> 150;
 		};
 		// Greater speed --> smaller transition delay
-		logger.log(Level.INFO, "Movement delay is {0} ms", movementSpeed);
+		// logger.log(Level.INFO, "Movement delay is {0} ms", movementSpeed);
 
 		TranslateTransition transition = new TranslateTransition(Duration.millis(movementSpeed), playerView);
 		transition.setByX(deltaX);
