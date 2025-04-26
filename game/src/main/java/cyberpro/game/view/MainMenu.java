@@ -61,7 +61,10 @@ public class MainMenu extends Application {
 		modeSelection.setAlignment(Pos.CENTER);
                 
                 // Show players stats
-                // players = controller.getPlayers();
+                //players = controller.getPlayers();
+                Label player1 = new Label("Player 1");
+                Label player2 = new Label("Player 2");
+                HBox playersStats = new HBox(2, player1, player2);
 
 
 		// ListView with .txt level files
@@ -132,7 +135,7 @@ public class MainMenu extends Application {
 		// Layout
 		VBox menuLayout = new VBox(20);
 		menuLayout.setAlignment(Pos.CENTER);
-		menuLayout.getChildren().addAll(title, modeSelection, startButton, levelSelection, exitButton);
+		menuLayout.getChildren().addAll(title, modeSelection, playersStats, startButton, levelSelection, exitButton);
 		menuLayout.getStyleClass().add("menu-background");
 
 		Scene scene = new Scene(menuLayout, 600, 600);

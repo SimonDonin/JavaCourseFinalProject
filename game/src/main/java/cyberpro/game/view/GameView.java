@@ -26,6 +26,7 @@ import javafx.animation.PauseTransition;
 import javafx.util.Duration;
 // End animation libs
 import java.util.HashMap;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -67,7 +68,6 @@ public class GameView {
 	// Game board array. We have to recive it from a Controller
 	private boolean isPaused;
         
-        Bomb savedBomb;
 
 	// Begin load sprites
 	private final Image playerOneImage = new Image(getClass().getResourceAsStream("Character1.png"));
@@ -96,7 +96,7 @@ public class GameView {
 	private Map<String, ImageView> bombSprites = new HashMap<>();
 	private Map<String, ImageView> deadPlayerSprites = new HashMap<>();
 	private Map<String, ImageView> modifierSprites = new HashMap<>();
-        private Map<String, ArrayList<ImageView>> blastSprites = new HashMap<>();
+        private Map<String, CopyOnWriteArrayList<ImageView>> blastSprites = new ConcurrentHashMap<>();
 	// End declare map lists for player and bomb sprites
 
 	// Declare a mediaplayer for background music
@@ -245,9 +245,7 @@ public class GameView {
 							&& (Objects.equals(playerOnMove.get(controller.getPlayerIdByNumber(1)), Boolean.FALSE))) {
 						controller.playerRemoteBombExplode(controller.getPlayerIdByNumber(2));
 					}
-                                        if (pressedKeys.contains(KeyCode.R)) {
-                                            removeBlast(savedBomb);
-                                        }
+                                        
 					// Update the last update time
 					lastUpdateP2 = now;
 				}
@@ -450,13 +448,13 @@ public class GameView {
     }
 
     public void blastBomb(Bomb bomb, CopyOnWriteArrayList<Coordinates> blastWave) {
-        ArrayList<ImageView> blastCloud = new ArrayList<ImageView>();
+        CopyOnWriteArrayList<ImageView> blastCloud = new CopyOnWriteArrayList<>();
 
         if (bomb == null) {
             logger.log(Level.WARNING, "No bomb");
             return;
         }
-        savedBomb = bomb;
+
         // Play blast sound before update the view
         BLAST_BOMB_SOUND.setVolume(0.8);
         BLAST_BOMB_SOUND.play();
@@ -523,14 +521,14 @@ public class GameView {
         // Do not draw rays if ray length is < 2
         // (so ray have only a tip or no ray)
         blastSprites.put(bomb.getId(), blastCloud);
-        logger.log(Level.FINE, "Blast cloud with ID {0} is saved for future removal.", bomb.getId());
+        logger.log(Level.INFO, "Blast cloud with ID {0} is saved for future removal.", bomb.getId());
         // All tiles of blast are keept at blastSprites to facilitate future removal
         // blastCloud is local. It will be re-inicialized during next run
 
     }
     
     public void removeBlast(Bomb bomb) {
-        ArrayList<ImageView> blastCloud = blastSprites.get(bomb.getId());
+        CopyOnWriteArrayList<ImageView> blastCloud = blastSprites.get(bomb.getId());
         if (blastCloud == null) {
             logger.log(Level.WARNING, "No blast found for bomb ID: " + bomb.getId());
             return;
@@ -554,7 +552,7 @@ public class GameView {
         // Remove all blast information from a set after it was removed from screen
     }
 
-    private void drawBlast(Image img, int x, int y, ArrayList<ImageView> blastCloud) {
+    private void drawBlast(Image img, int x, int y, CopyOnWriteArrayList<ImageView> blastCloud) {
         ImageView blastView;
         blastView = new ImageView(img);
         blastView.setFitWidth(TILE_SIZE);
