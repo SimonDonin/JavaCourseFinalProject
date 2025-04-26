@@ -450,7 +450,10 @@ public class GameController implements ControllerInterface {
 		schedulerForRaysOff.schedule(() -> {
 			// !!! I put this code to rest bomb removal without redraw board
 			draw();
-			// gameView.removeBlast(bombFound);
+                        Platform.runLater(() -> {
+                            gameView.removeBlast(bombFound);
+                        });
+			// 
 			game.fullRemove(bombFound);
 		}, Bomb.getDefaultRaysDuration(), TimeUnit.SECONDS);
 

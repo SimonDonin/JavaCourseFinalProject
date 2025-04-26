@@ -66,6 +66,8 @@ public class GameView {
 	private TileType[][] gameBoard;
 	// Game board array. We have to recive it from a Controller
 	private boolean isPaused;
+        
+        Bomb savedBomb;
 
 	// Begin load sprites
 	private final Image playerOneImage = new Image(getClass().getResourceAsStream("Character1.png"));
@@ -243,6 +245,9 @@ public class GameView {
 							&& (Objects.equals(playerOnMove.get(controller.getPlayerIdByNumber(1)), Boolean.FALSE))) {
 						controller.playerRemoteBombExplode(controller.getPlayerIdByNumber(2));
 					}
+                                        if (pressedKeys.contains(KeyCode.R)) {
+                                            removeBlast(savedBomb);
+                                        }
 					// Update the last update time
 					lastUpdateP2 = now;
 				}
@@ -330,7 +335,7 @@ public class GameView {
 		gameBoard = board;
 	}
 
-	public void drawGrid(ArrayList<Player> players, CopyOnWriteArrayList<Bomb> bombs, ArrayList<Modifier> modifiers) {
+	public void drawGrid(ArrayList<Player> players, CopyOnWriteArrayList<Bomb> bombs, ArrayList<Modifier> modifiers, ArrayList<Bomb> blast) {
 		grid.getChildren().clear();
 		// We need to clear all grid. GridPane do not allow duplicated nodes
 		for (int row = 0; row < gridWidth; row++) {
@@ -451,6 +456,7 @@ public class GameView {
             logger.log(Level.WARNING, "No bomb");
             return;
         }
+        savedBomb = bomb;
         // Play blast sound before update the view
         BLAST_BOMB_SOUND.setVolume(0.8);
         BLAST_BOMB_SOUND.play();
@@ -542,7 +548,7 @@ public class GameView {
             }
         }
         blastPane.getChildren().removeIf(node -> blastCloud.contains(node));
-        logger.log(Level.FINE, "Bomb is removed from screen sprites");
+        logger.log(Level.INFO, "Bomb is removed from screen sprites");
         blastPane.requestLayout();
         blastSprites.remove(bomb.getId());
         // Remove all blast information from a set after it was removed from screen
