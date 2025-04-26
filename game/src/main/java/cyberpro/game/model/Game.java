@@ -1,18 +1,14 @@
 package cyberpro.game.model;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ScheduledFuture;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import cyberpro.game.view.TileType;
-import java.io.FileNotFoundException;
 
 public class Game {
 	private static final String DEFAULT_PLAYER1_NAME = "Player 1";
@@ -25,11 +21,7 @@ public class Game {
 	private ArrayList<Bomb> bombsExploded;
 	private ArrayList<Modifier> modifiers;
 	private Map<String, ScheduledFuture> explosionTasksByBombId = new HashMap<>();
-
-	// public Game(String name, int playersNumber) { this.name = name;
-	// this.playersNumber = playersNumber; board = new Board(); players = new
-	// ArrayList<>(); bombs = new ArrayList<>(); modifiers = new ArrayList<>();
-	// }
+	private final Logger logger = Logger.getLogger(Game.class.getName()); // Create logger using core Java API
 
 	public Game(String name, ArrayList<Player> players, Board board) {
 		this.name = name;
@@ -38,6 +30,14 @@ public class Game {
 		bombs = new CopyOnWriteArrayList<>();
 		bombsExploded = new ArrayList<>();
 		modifiers = new ArrayList<>();
+	}
+
+	public static String getDefaultPlayer1Name() {
+		return DEFAULT_PLAYER1_NAME;
+	}
+
+	public static String getDefaultPlayer2Name() {
+		return DEFAULT_PLAYER2_NAME;
 	}
 
 	public ArrayList<Player> getPlayers() {
@@ -56,6 +56,7 @@ public class Game {
 		return modifiers;
 	}
 
+	// finds a player by Id
 	public Player findPlayerById(String Id) {
 		if (players == null)
 			return null;
@@ -71,22 +72,26 @@ public class Game {
 		return board;
 	}
 
-	// create a pair (bombId, scheduler object) to be able to cancel the scheduler later
+	// creates a pair (bombId, scheduler object) to be able to cancel the scheduler
+	// llater
 	public void putExplosionTaskByBombId(String bombId, ScheduledFuture scheduledTask) {
 		if (explosionTasksByBombId.containsKey(bombId)) {
 			return;
 		}
 		explosionTasksByBombId.put(bombId, scheduledTask);
-		System.out.println("Scheduled an explosion task for the bombId = " + bombId);
+		logger.log(Level.INFO, "Scheduled an explosion task for the bombId = " + bombId);
 	}
-	
+
+	// gets the scheduled explosion task from the pairs list and removes it from
+	// there
 	public ScheduledFuture extractExplosionTaskByBombId(String bombId) {
 		ScheduledFuture scheduledTask = explosionTasksByBombId.get(bombId);
-		System.out.println("A scheduled task for the bomb with bombId = " + bombId + " was extracted successfully");
+		logger.log(Level.INFO, "A scheduled task for the bomb with bombId = " + bombId + " was extracted successfully");
 		explosionTasksByBombId.remove(bombId);
 		return scheduledTask;
-		}
-	
+	}
+
+	// finds bomb by id
 	public Bomb findBombById(String Id) {
 		if (bombs == null)
 			return null;
@@ -98,6 +103,7 @@ public class Game {
 		return null;
 	}
 
+	// finds modifier by id
 	public Modifier findModifierById(String Id) {
 		if (modifiers == null)
 			return null;
@@ -109,6 +115,7 @@ public class Game {
 		return null;
 	}
 
+	// adds the player to the players list
 	public boolean addPlayer(Player player) {
 		// search for a double and if it is found - return false
 		Player playerFound = findPlayerById(player.getId());
@@ -119,11 +126,12 @@ public class Game {
 		return true;
 	}
 
+	// removes the player from the players list
 	public boolean removePlayer(Player player) {
 		// if there are no players
 		if (players == null)
 			return false;
-		// search for a double and if it is found - return false
+		// searching for a double and if it is found - return false
 		Player playerFound = findPlayerById(player.getId());
 		if (playerFound != null) {
 			return false;
@@ -132,6 +140,7 @@ public class Game {
 		return true;
 	}
 
+	// adding the bomb to the bombs list
 	public boolean addBomb(Bomb bomb) {
 		// search for a double and if it is found - return false
 		Bomb bombFound = findBombById(bomb.getId());
@@ -139,10 +148,10 @@ public class Game {
 			return false;
 		}
 		this.bombs.add(bomb);
-		System.out.println("Bomb " + bomb.getId() + " was added to the bombs list");
 		return true;
 	}
 
+	// removes the bomb from the bombs list
 	public boolean removeBomb(Bomb bomb) {
 		// if there are no bombs
 		if (bombs == null)
@@ -150,14 +159,14 @@ public class Game {
 		// if the bomb is not found in the bombs list - return false
 		Bomb bombFound = findBombById(bomb.getId());
 		if (bombFound == null) {
-			System.out.println("No such bomb in the bombs list!");
+			logger.log(Level.INFO, "No such bomb in the bombs list!");
 			return false;
 		}
-		System.out.println("Bomb " + bomb.getId() + " was removed from the bombs list");
 		this.bombs.remove(bomb);
 		return true;
 	}
 
+	// adds the modifier to the modifiers list
 	public boolean addModifier(Modifier modifier) {
 		// search for a double and if it is found - return false
 		Modifier modifierFound = findModifierById(modifier.getId());
@@ -165,10 +174,10 @@ public class Game {
 			return false;
 		}
 		this.modifiers.add(modifier);
-		System.out.println("Modifier " + modifier.getId() + " was added to the modifiers list");
 		return true;
 	}
 
+	// removes the modifier from the modifiers list
 	public boolean removeModifier(Modifier modifier) {
 		// if there are no players
 		if (modifiers == null)
@@ -176,10 +185,9 @@ public class Game {
 		// if not found - nothing to remove
 		Modifier modifierFound = findModifierById(modifier.getId());
 		if (modifierFound == null) {
-			System.out.println("No such modifier in the modifiers list!");
+			logger.log(Level.INFO, "No such modifier in the modifiers list!");
 			return false;
 		}
-		System.out.println("Modifier " + modifier.getId() + " was removed from the modifiers list");
 		this.modifiers.remove(modifier);
 		return true;
 	}
@@ -192,17 +200,19 @@ public class Game {
 				+ bombs.toString() + "\nMODIFIERS" + "\n" + modifiers.toString();
 	}
 
+	// transfers the bomb from the main bombs list to the exploded bombs list
 	public boolean assignExploded(Bomb bomb) {
 		if (!removeBomb(bomb))
 			return false;
 		if (findExplodedBombById(bomb.getId()) != null) {
 			return false;
 		}
-		System.out.println("Bomb " + bomb.getId() + " was transfered to the exploded bombs list");
+		logger.log(Level.INFO, "Bomb " + bomb.getId() + " was transfered to the exploded bombs list");
 		this.bombsExploded.add(bomb);
 		return true;
 	}
-	
+
+	// finds the exploded bomb by id
 	public Bomb findExplodedBombById(String Id) {
 		if (bombsExploded == null)
 			return null;
@@ -214,6 +224,7 @@ public class Game {
 		return null;
 	}
 
+	// removes the bomb from the exploded bombs list
 	public boolean fullRemove(Bomb bomb) {
 		// if there are no bombs
 		if (bombsExploded == null)
@@ -221,22 +232,24 @@ public class Game {
 		// if the bomb is not found in the bombs list - return false
 		Bomb bombFound = findExplodedBombById(bomb.getId());
 		if (bombFound == null) {
-			System.out.println("No such bomb in the exploded bombs list!");
+			logger.log(Level.INFO, "No such bomb to remove in the exploded bombs list!");
 			return false;
 		}
-		System.out.println("Bomb " + bomb.getId() + " was removed from the exploded bombs list");
+		logger.log(Level.INFO, "Bomb " + bomb.getId() + " was removed from the exploded bombs list");
 		this.bombsExploded.remove(bomb);
 		return true;
-		
+
 	}
-	
+
+	// prints players list
 	public void printPlayers() {
 		for (Player player : players) {
 			System.out.println(player);
 		}
 	}
 
-	public void playersRessurect() {
+	// resets players variables except for their stats
+	public void playersReset() {
 		if (players == null) {
 			return;
 		}
@@ -244,7 +257,77 @@ public class Game {
 			if (!player.isAlive()) {
 				player.setAlive(true);
 			}
+			player.resetModifiers();
 		}
+		placePlayersToFreePlace();
 	}
 
+	// validates if there is a free cell in the board near the coordinates provided
+	public boolean isFreeSpaceNear(Coordinates coordinates) {
+		if (coordinates == null) {
+			return false;
+		}
+		// traverse along X
+		for (int i = -1; i <= 1 && i != 0; i++) {
+			int newX = coordinates.getX() + i;
+			if (newX <= 0 || newX > board.getSize() - 1) {
+				continue;
+			}
+			if (board.getCell(newX, coordinates.getY()) == TileType.FLOOR) {
+				return true;
+			}
+
+			// traverse along Y
+			for (int j = -1; j <= 1 && j != 0; j++) {
+				int newY = coordinates.getY() + j;
+				if (newY <= 0 || newY > board.getSize() - 1) {
+					continue;
+				}
+				if (board.getCell(coordinates.getX(), newY) == TileType.FLOOR) {
+					return true;
+				}
+				return false;
+			}
+		}
+		return false;
+	}
+
+	// places players in the board in the most cornered free space
+	private void placePlayersToFreePlace() {
+		boolean isPlayer1Placed = false;
+		boolean isPlayer2Placed = false;
+		if (players == null || players.isEmpty()) {
+			return;
+		}
+		// player 1 processing
+		Player player1 = players.get(0);
+		for (int i = 0; i <= board.getSize() / 2; i++) {
+			if (isPlayer1Placed) {
+				break;
+			}
+			for (int j = 0; j <= board.getSize() / 2; j++) {
+				if (board.getCell(i, j) == TileType.FLOOR && isFreeSpaceNear(new Coordinates(i, j))) {
+					isPlayer1Placed = true;
+					player1.setCoordinates(new Coordinates(i, j));
+					break;
+				}
+			}
+		}
+
+		// player 2 processing
+		Player player2 = players.get(1);
+		for (int i = 0; i <= board.getSize() / 2; i++) {
+			if (isPlayer2Placed) {
+				break;
+			}
+			for (int j = 0; j <= board.getSize() / 2; j++) {
+				if (board.getCell(board.getSize() - i - 1, board.getSize() - j - 1) == TileType.FLOOR
+						&& isFreeSpaceNear(new Coordinates(board.getSize() - i - 1, board.getSize() - j - 1))) {
+					isPlayer2Placed = true;
+					player2.setCoordinates(new Coordinates(board.getSize() - i - 1, board.getSize() - j - 1));
+					break;
+				}
+			}
+		}
+	}
 }

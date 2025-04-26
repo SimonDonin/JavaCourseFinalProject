@@ -43,5 +43,7 @@ public interface ControllerInterface {
 	public void pauseOn();
 	
 	public void pauseOff();	
+	
+	public void exitApp();
 
 }
