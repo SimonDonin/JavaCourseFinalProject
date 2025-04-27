@@ -30,6 +30,11 @@ Click nbfs://nbhost/SystemFileSystem/Templates/Other/CascadeStyleSheet.css to ed
     -fx-text-fill: #ffffff;
 }
 
+.player-label {
+    -fx-font-size: 18px;
+    -fx-text-fill: #ffffff;
+}
+
 /* Buttons */
 .menu-button {
     -fx-background-color: #222222;
