@@ -767,7 +767,6 @@ public class GameController implements ControllerInterface {
 		}
 		// removing the modifier from the modifiers list
 		game.removeModifier(modifier);
-		// removing the modifier in the view
 		Platform.runLater(() -> {
 			gameView.removeMod(modifier);
 		});
@@ -784,19 +783,20 @@ public class GameController implements ControllerInterface {
 
 	// sets up a playersSet to play next
 	@Override
-	public void setPlayers(ArrayList<Player> players1) {
-		if (players1 == null || players1.isEmpty()) {
+	public void setPlayers(ArrayList<Player> players) {
+		if (players == null || players.isEmpty()) {
 			return;
 		}
 		// if the method isn't called from the application start
-		if (!playersSet.isEmpty() || DataHandler.deserializePlayersSets() == null) {
+		if (!playersSet.isEmpty() || DataHandler.deserializePlayersSets() == null || DataHandler.deserializePlayersSets().isEmpty()) {
+		
 			// saving playerSet as the lastPlayerSet into the File
-			DataHandler.saveLastPlayersSet(players1);
+			DataHandler.saveLastPlayersSet(players);
 			// saving playerSet as a regular playerSet into the File
-			DataHandler.serializePlayersSet(players1);
+			DataHandler.serializePlayersSet(players);
 		}
 		// setting up the playerSet value
-		playersSet = players1;
+		playersSet = players;
 		logger.log(Level.INFO, "Saving counter from setPlayers, setting up the value =  " + Player.getCounter());
 		DataHandler.saveCounterIntoFile();
 	}
@@ -876,5 +876,10 @@ public class GameController implements ControllerInterface {
 	public void exitApp() {
 		// logger.log(Level.INFO, "Exiting the App...");
 		System.exit(0);
+	}
+
+	@Override
+	public ArrayList<Player> getPlayersSet() {
+		return playersSet;
 	}
 }
