@@ -85,9 +85,17 @@ public class Game {
 	// gets the scheduled explosion task from the pairs list and removes it from
 	// there
 	public ScheduledFuture extractExplosionTaskByBombId(String bombId) {
-		ScheduledFuture scheduledTask = explosionTasksByBombId.get(bombId);
+		ScheduledFuture scheduledTask = findExplosionTaskByBombId(bombId);
+		if (scheduledTask == null) return null;
 		logger.log(Level.INFO, "A scheduled task for the bomb with bombId = " + bombId + " was extracted successfully");
 		explosionTasksByBombId.remove(bombId);
+		return scheduledTask;
+	}
+	
+	public ScheduledFuture findExplosionTaskByBombId(String bombId) {
+		ScheduledFuture scheduledTask = explosionTasksByBombId.get(bombId);
+		if (scheduledTask == null) return null;
+		logger.log(Level.INFO, "A scheduled task for the bomb with bombId = " + bombId + " was found successfully");
 		return scheduledTask;
 	}
 
@@ -159,7 +167,7 @@ public class Game {
 		// if the bomb is not found in the bombs list - return false
 		Bomb bombFound = findBombById(bomb.getId());
 		if (bombFound == null) {
-			logger.log(Level.INFO, "No such bomb in the bombs list!");
+			logger.log(Level.INFO, "No such bomb in the bombs list " + bomb.getId() + "!!!");
 			return false;
 		}
 		this.bombs.remove(bomb);
@@ -201,7 +209,7 @@ public class Game {
 	}
 
 	// transfers the bomb from the main bombs list to the exploded bombs list
-	public boolean assignExploded(Bomb bomb) {
+	public boolean  assignExploded(Bomb bomb) {
 		if (!removeBomb(bomb))
 			return false;
 		if (findExplodedBombById(bomb.getId()) != null) {

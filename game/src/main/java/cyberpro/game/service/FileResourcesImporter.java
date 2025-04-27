@@ -36,7 +36,6 @@ public class FileResourcesImporter {
 			try {
 				while ((line = reader.readLine()) != null) {
 					lines.add(line);
-					System.out.println(line);
 				}
 
 			int rows = lines.size();

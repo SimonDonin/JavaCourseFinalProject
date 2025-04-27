@@ -49,7 +49,6 @@ public class Bomb {
 
 	// adds coordinates to the explosion rays collection for the bomb
 	public boolean addToRays(Coordinates coordinates) {
-		System.out.println("Adding rays coordinate " + coordinates);
 		for (Coordinates coords : rays) {
 			if (coords.getX() == coordinates.getX() && coords.getY() == coordinates.getY()) {
 				return false;
@@ -69,6 +68,7 @@ public class Bomb {
 
 	// explodes the bomb
 	public void explode() {
+		if (raysOffDate != null) return;
 		Date currentDate = new Date();
 		// A calendar for calculations
 		Calendar calendar = Calendar.getInstance();
