@@ -30,7 +30,8 @@ public class MainMenu extends Application {
 
 	private final ControllerInterface controller;
 	private Stage stage;
-        ArrayList<Player> players;
+        ArrayList<ArrayList<Player>> players;
+        ArrayList<Player> playerSet;
 
 	@Override
 	public void start(Stage primaryStage) {
@@ -61,10 +62,28 @@ public class MainMenu extends Application {
 		modeSelection.setAlignment(Pos.CENTER);
                 
                 // Show players stats
-                //players = controller.getPlayers();
+                players = controller.getPlayersSets();
+                System.out.println("Player list length " + players.size());
+                try { playerSet = players.getFirst(); } catch (java.util.NoSuchElementException e) {
+                    System.out.println("Players sets are emperty");
+                }
+                
                 Label player1 = new Label("Player 1");
+                player1.getStyleClass().add("player-label");
                 Label player2 = new Label("Player 2");
+                player2.getStyleClass().add("player-label");
+                try {
+                    player1.setText("Player1\nName" + playerSet.getFirst().getName() + "\nWin count " + playerSet.getFirst().getWinsCount());
+                    player1.setWrapText(true);
+                    
+                    player2.setText("Player2\nName" + playerSet.getLast().getName() + "\nWin count " + playerSet.getLast().getWinsCount());
+                    player2.setWrapText(true);
+                } catch (Exception e) {
+                    System.out.println("Players sets are emperty or wrong");
+                }
                 HBox playersStats = new HBox(2, player1, player2);
+                player1.prefWidthProperty().bind(playersStats.widthProperty().divide(2));
+                player2.prefWidthProperty().bind(playersStats.widthProperty().divide(2));
 
 
 		// ListView with .txt level files
