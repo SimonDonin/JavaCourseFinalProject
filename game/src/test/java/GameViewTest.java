@@ -44,7 +44,7 @@ public class GameViewTest extends TestCase {
         CopyOnWriteArrayList<Bomb> bombs = null;
         ArrayList<Modifier> modifiers = null;
         GameView instance = null;
-        instance.drawGrid(players, bombs, modifiers);
+        instance.drawGrid(players, bombs, modifiers, null);
         // TODO review the generated test code and remove the default call to fail.
         fail("The test case is a prototype.");
     }

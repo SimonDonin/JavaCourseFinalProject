@@ -18,7 +18,7 @@ public class Game {
 	private Board board;
 	private ArrayList<Player> players;
 	private CopyOnWriteArrayList<Bomb> bombs;
-	private ArrayList<Bomb> bombsExploded;
+	private CopyOnWriteArrayList<Bomb> bombsExploded;
 	private ArrayList<Modifier> modifiers;
 	private Map<String, ScheduledFuture> explosionTasksByBombId = new HashMap<>();
 	private final Logger logger = Logger.getLogger(Game.class.getName()); // Create logger using core Java API
@@ -28,7 +28,7 @@ public class Game {
 		this.players = players;
 		this.board = board;
 		bombs = new CopyOnWriteArrayList<>();
-		bombsExploded = new ArrayList<>();
+		bombsExploded = new CopyOnWriteArrayList<>();
 		modifiers = new ArrayList<>();
 	}
 
@@ -48,7 +48,7 @@ public class Game {
 		return bombs;
 	}
 
-	public ArrayList<Bomb> getBombsExploded() {
+	public CopyOnWriteArrayList<Bomb> getBombsExploded() {
 		return bombsExploded;
 	}
 

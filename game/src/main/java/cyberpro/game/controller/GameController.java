@@ -70,8 +70,6 @@ public class GameController implements ControllerInterface {
 		if (playersSetImported == null || playersSetImported.isEmpty()) {
 			return;
 		}
-		DataHandler.loadCounterFromFile();
-		setPlayers(playersSetImported);
 		initPlayersCounter();
 	}
 
@@ -101,8 +99,10 @@ public class GameController implements ControllerInterface {
 	public void mainMenu() {
 		// >>> Only until the target mechanism is ready in the GUI <<<
 		// playersSet initialization
+		System.out.println("PlayersSet = " + playersSet);
 		if (playersSet == null || playersSet.isEmpty()) {
 			setDefaultPlayers();
+			System.out.println("PlayersSet after = " + playersSet);
 		}
 		// starting the MainMenu window
 		Platform.startup(() -> {
@@ -150,6 +150,7 @@ public class GameController implements ControllerInterface {
 		});
 		// draws an initial grid
 		draw();
+		System.out.println("Players are " + getPlayersSets());
 		// running a thread for dealing with a commands queue
 		new Thread(() -> {
 			try {
@@ -443,17 +444,17 @@ public class GameController implements ControllerInterface {
 			// draw explosion in the view
 			gameView.blastBomb(bombFound, bombFound.getRays());
 			// transfer the bomb from the bombs list to the exploded bombs list
-			game.assignExploded(bombFound);
 		});
+		game.assignExploded(bombFound);
 		// calculating time for rays to disappear and Setting up a timer to do it
 		// eliminating the bomb from the exploded bombs list
 		schedulerForRaysOff.schedule(() -> {
 			// !!! I put this code to rest bomb removal without redraw board
 			draw();
-                        Platform.runLater(() -> {
-                            gameView.removeBlast(bombFound);
-                        });
-			// 
+			Platform.runLater(() -> {
+				gameView.removeBlast(bombFound);
+			});
+			//
 			game.fullRemove(bombFound);
 		}, Bomb.getDefaultRaysDuration(), TimeUnit.SECONDS);
 
@@ -769,19 +770,22 @@ public class GameController implements ControllerInterface {
 
 	// sets up a playersSet to play next
 	@Override
-	public void setPlayers(ArrayList<Player> players) {
-		if (players == null || players.isEmpty()) {
+	public void setPlayers(ArrayList<Player> players1) {
+		System.out.println("players1 == null " + players1 == null);
+		System.out.println("players1.isEmpty()) = " + players1.isEmpty());
+		if (players1 == null || players1.isEmpty()) {
 			return;
 		}
 		// if the method isn't called from the application start
-		if (!playersSet.isEmpty()) {
+		System.out.println("DataHandler.deserializePlayersSets() == null" + "= " + DataHandler.deserializePlayersSets() == null);
+		if (!playersSet.isEmpty() || DataHandler.deserializePlayersSets() == null) {
 			// saving playerSet as the lastPlayerSet into the File
-			DataHandler.saveLastPlayersSet(players);
+			DataHandler.saveLastPlayersSet(players1);
 			// saving playerSet as a regular playerSet into the File
-			DataHandler.serializePlayersSet(players);
+			DataHandler.serializePlayersSet(players1);
 		}
 		// setting up the playerSet value
-		playersSet = players;
+		playersSet = players1;
 		logger.log(Level.INFO, "Saving counter from setPlayers, setting up the value =  " + Player.getCounter());
 		DataHandler.saveCounterIntoFile();
 	}
@@ -853,6 +857,7 @@ public class GameController implements ControllerInterface {
 		ArrayList<Player> defaultPlayersList = new ArrayList<>();
 		defaultPlayersList.add(player1);
 		defaultPlayersList.add(player2);
+		System.out.println("default players list = " + defaultPlayersList);
 		setPlayers(defaultPlayersList);
 	}
 
