@@ -246,14 +246,12 @@ public class DataHandler {
 			if (file.isFile() && file.getName().charAt(0) == 'P')
 				filesList.add(file);
 		}
-		System.out.println(filesList);
 		// declaring a variable for collecting deserialized playersSets
 		ArrayList<ArrayList<Player>> playersSets = new ArrayList<ArrayList<Player>>();
 		// deserializing every playersSet from each file
 		ArrayList<Player> playersSet = new ArrayList<Player>();
 		for (File file : filesList) {
 			playersSet = deserializePlayersSet(file);
-			System.out.println("For file " + file + " playersSet = " + playersSet);
 			if (playersSet != null) {
 				playersSets.add(playersSet);
 			}

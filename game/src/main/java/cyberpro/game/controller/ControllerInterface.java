@@ -36,6 +36,8 @@ public interface ControllerInterface {
 	
 	public ArrayList<ArrayList<Player>> getPlayersSets();
 	
+	public ArrayList<Player> getPlayersSet();
+	
 	public void startGame() throws FileNotFoundException, IOException;
 	
 	public void gameOverComplete();

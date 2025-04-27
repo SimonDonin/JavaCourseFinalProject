@@ -78,11 +78,12 @@ public class GameController implements ControllerInterface {
 		// calculating max counter number and updating the Player counter to the max
 		// value
 		ArrayList<Player> playersSetImported = DataHandler.getLastPlayersSet();
-		logger.log(Level.INFO, ">>> playersSetImported is " + playersSetImported);
+		// logger.log(Level.INFO, ">>> playersSetImported is " + playersSetImported);
 		int maxId = Player.getCounter();
 		for (Player player : playersSetImported) {
 			int playerCount = Integer.parseInt(player.getId().substring(1));
-			logger.log(Level.INFO, "Counter value for player " + player.getName() + " = ");
+			// logger.log(Level.INFO, "Counter value for player " + player.getName() + " =
+			// ");
 			if (maxId < playerCount) {
 				maxId = playerCount;
 			}
@@ -91,7 +92,7 @@ public class GameController implements ControllerInterface {
 			logger.log(Level.INFO, "Setting up counter from initPlayersCounter: to the value = " + maxId);
 			Player.setCounter(maxId);
 			DataHandler.saveCounterIntoFile();
-			logger.log(Level.INFO, "currentCounter =" + Player.getCounter());
+			// logger.log(Level.INFO, "currentCounter =" + Player.getCounter());
 		}
 	}
 
@@ -99,10 +100,8 @@ public class GameController implements ControllerInterface {
 	public void mainMenu() {
 		// >>> Only until the target mechanism is ready in the GUI <<<
 		// playersSet initialization
-		System.out.println("PlayersSet = " + playersSet);
 		if (playersSet == null || playersSet.isEmpty()) {
 			setDefaultPlayers();
-			System.out.println("PlayersSet after = " + playersSet);
 		}
 		// starting the MainMenu window
 		Platform.startup(() -> {
@@ -137,7 +136,7 @@ public class GameController implements ControllerInterface {
 		game.playersReset();
 		resetLists();
 		gameOverTask = null;
-		logger.log(Level.INFO, "Game variables were reset ");
+		// logger.log(Level.INFO, "Game variables were reset ");
 	}
 
 	// runs a game GUI window and starts processes to provide actual game
@@ -150,7 +149,6 @@ public class GameController implements ControllerInterface {
 		});
 		// draws an initial grid
 		draw();
-		System.out.println("Players are " + getPlayersSets());
 		// running a thread for dealing with a commands queue
 		new Thread(() -> {
 			try {
@@ -179,11 +177,11 @@ public class GameController implements ControllerInterface {
 		case 'R' -> moveInDirection(command.substring(1), "right");
 		case 'B' -> {
 			plantBomb(command.substring(1));
-			logger.log(Level.INFO, "Got a plant bomb command for a queue");
+			// logger.log(Level.INFO, "Got a plant bomb command for a queue");
 		}
 		case 'E' -> {
 			RemoteBombExplode(command.substring(1));
-			logger.log(Level.INFO, "Got a remote bombs detonation command for a queue");
+			// logger.log(Level.INFO, "Got a remote bombs detonation command for a queue");
 		}
 
 		default -> logger.log(Level.INFO, "Unknown command");
@@ -240,11 +238,14 @@ public class GameController implements ControllerInterface {
 		Coordinates newCoordinates = new Coordinates(newX, newY);
 		// check if the new X coordinate is free for occupation
 		if (!isFreeToOccupy(newCoordinates) || bombByCoordinates(newCoordinates) != null) {
-			logger.log(Level.INFO, "!isFreeToOccupy(newCoordinates)" + "=" + !isFreeToOccupy(newCoordinates));
-			logger.log(Level.INFO, "Move from coordinates (" + currentX + ", " + currentY + ") to coordinates ("
-					+ newCoordinates.getX() + ", " + newCoordinates.getY() + ")");
-			logger.log(Level.INFO, "AnyPlayerHere(newCoordinates)" + "=" + isAnyPlayerHere(newCoordinates));
-			logger.log(Level.INFO, "newCoordinates = " + newCoordinates);
+			// logger.log(Level.INFO, "!isFreeToOccupy(newCoordinates)" + "=" +
+			// !isFreeToOccupy(newCoordinates));
+			// logger.log(Level.INFO, "Move from coordinates (" + currentX + ", " + currentY
+			// + ") to coordinates ("
+			// + newCoordinates.getX() + ", " + newCoordinates.getY() + ")");
+			// logger.log(Level.INFO, "AnyPlayerHere(newCoordinates)" + "=" +
+			// isAnyPlayerHere(newCoordinates));
+			// logger.log(Level.INFO, "newCoordinates = " + newCoordinates);
 			return false;
 		}
 		Coordinates oldCoordinates = new Coordinates(currentX, currentY);
@@ -371,8 +372,10 @@ public class GameController implements ControllerInterface {
 			return;
 		// only allowed amount of bombs can be planted by the player at the same time
 		if (countBombsActive(playerId) >= countBombsAllowed(playerId)) {
-			logger.log(Level.INFO, "Player " + playerId + " can't plant more bombs: current active bombs number = "
-					+ countBombsActive(playerId) + " and allowed = " + countBombsAllowed(playerId));
+			// logger.log(Level.INFO, "Player " + playerId + " can't plant more bombs:
+			// current active bombs number = "
+			// + countBombsActive(playerId) + " and allowed = " +
+			// countBombsAllowed(playerId));
 			return;
 		}
 		// unable to plant the second bomb at the same place
@@ -400,7 +403,7 @@ public class GameController implements ControllerInterface {
 		ScheduledFuture<?> taskExplode = schedulerForExplosion.schedule(() -> explodeBomb(newBomb.getId()),
 				DEFAULT_TIME_TILL_EXPLOSION, TimeUnit.SECONDS);
 		game.putExplosionTaskByBombId(newBomb.getId(), taskExplode);
-		logger.log(Level.INFO, "Player " + playerId + " planted a bomb");
+		// logger.log(Level.INFO, "Player " + playerId + " planted a bomb");
 		// ask view to draw the bomb
 		Platform.runLater(() -> {
 			gameView.plantBomb(newBomb);
@@ -416,7 +419,7 @@ public class GameController implements ControllerInterface {
 		// searching for all the player's active bombs able to detonate remotely and
 		// detonate them immediately
 		for (Bomb bomb : game.getBombs()) {
-			if (bomb.getPlayerId().equalsIgnoreCase(playerId) && bomb.isDistantExplosion()) {
+			if (bomb.getPlayerId().equalsIgnoreCase(playerId) && bomb.isDistantExplosion() && game.findExplodedBombById(bomb.getId()) == null) {
 				// canceling the scheduled tasks for future explosion
 				ScheduledFuture<?> task = game.extractExplosionTaskByBombId(bomb.getId());
 				if (task == null)
@@ -429,10 +432,11 @@ public class GameController implements ControllerInterface {
 	}
 
 	// explodes the bomb
-	public void explodeBomb(String bombId) {
+	public synchronized void explodeBomb(String bombId) {
 		Bomb bombFound = game.findBombById(bombId);
-		// validation if a bomb isn't found by Id
-		if (bombFound == null)
+		Bomb bombExploded = game.findExplodedBombById(bombId);
+		// validation if a bomb isn't found  by Id
+		if (bombFound == null || bombExploded != null || bombFound.getRaysOffDate() != null)
 			return;
 		bombFound.explode();
 		makeRaysInOneDirection(bombFound, "right");
@@ -499,7 +503,8 @@ public class GameController implements ControllerInterface {
 			// killing players
 			if (playerHere) {
 				Player playerFound = playerByCoordinates(iCoordinate);
-				logger.log(Level.INFO, "Player is found by the rays ! It's " + playerFound.getName());
+				// logger.log(Level.INFO, "Player is found by the rays ! It's " +
+				// playerFound.getName());
 				if (playerFound != null) {
 					killPlayer(playerFound);
 				}
@@ -526,14 +531,23 @@ public class GameController implements ControllerInterface {
 			bombFound.addToRays(iCoordinate);
 			// exploding a bomb which is on the rays way
 			Bomb bombToExplode = bombByCoordinates(iCoordinate);
-			if (bombToExplode != null && bombToExplode.getRaysOffDate() == null) {
-				// running a thread for exploding another bomb
+			if (bombToExplode == null) {
+				continue;
+			}
+			Bomb bombExploded = game.findExplodedBombById(bombToExplode.getId());
+			Bomb bombToCheck = game.findBombById(bombToExplode.getId());
+
+			if (bombToCheck== null || bombExploded != null) {
+				continue;
+			}
+
+			if (bombToExplode.getRaysOffDate() == null || game.findExplosionTaskByBombId(bombToExplode.getId()) == null) {
+				// exploding another bomb
 				logger.log(Level.INFO, "Bomb " + bombFound.getId() + " detonated bomb " + bombToExplode.getId());
-				new Thread(() -> {
 					explodeBomb(bombToExplode.getId());
-				}).start();
 			}
 		}
+
 	}
 
 	// calculates explosion rate for the player's bombs
@@ -686,7 +700,7 @@ public class GameController implements ControllerInterface {
 			game.printPlayers();
 			return;
 		}
-		logger.log(Level.INFO, "Nobody wins");
+		// logger.log(Level.INFO, "Nobody wins");
 		return;
 	}
 
@@ -701,7 +715,8 @@ public class GameController implements ControllerInterface {
 		for (Bomb bomb : game.getBombsExploded()) {
 			for (Coordinates raysCoords : bomb.getRays()) {
 				if (raysCoords.getX() == coordinates.getX() && raysCoords.getY() == coordinates.getY()) {
-					logger.log(Level.INFO, "Player met explosion rays at the point " + coordinates);
+					// logger.log(Level.INFO, "Player met explosion rays at the point " +
+					// coordinates);
 					return true;
 				}
 			}
@@ -747,12 +762,11 @@ public class GameController implements ControllerInterface {
 		logger.log(Level.INFO, "Player " + player.getName() + " got the modifier " + modifier);
 		// SPEED_UP modifier processing
 		if (modifier.getType() == ModifierType.SPEED_UP) {
-			logger.log(Level.INFO, "Speeding up the player " + player.getId());
+			// logger.log(Level.INFO, "Speeding up the player " + player.getId());
 			player.calculatePlayerSpeed();
 		}
 		// removing the modifier from the modifiers list
 		game.removeModifier(modifier);
-		// removing the modifier in the view
 		Platform.runLater(() -> {
 			gameView.removeMod(modifier);
 		});
@@ -763,29 +777,26 @@ public class GameController implements ControllerInterface {
 	private void printRays() {
 		for (Bomb bomb : game.getBombs()) {
 			for (Coordinates raysCoords : bomb.getRays()) {
-				System.out.println(raysCoords);
 			}
 		}
 	}
 
 	// sets up a playersSet to play next
 	@Override
-	public void setPlayers(ArrayList<Player> players1) {
-		System.out.println("players1 == null " + players1 == null);
-		System.out.println("players1.isEmpty()) = " + players1.isEmpty());
-		if (players1 == null || players1.isEmpty()) {
+	public void setPlayers(ArrayList<Player> players) {
+		if (players == null || players.isEmpty()) {
 			return;
 		}
 		// if the method isn't called from the application start
-		System.out.println("DataHandler.deserializePlayersSets() == null" + "= " + DataHandler.deserializePlayersSets() == null);
-		if (!playersSet.isEmpty() || DataHandler.deserializePlayersSets() == null) {
+		if (!playersSet.isEmpty() || DataHandler.deserializePlayersSets() == null || DataHandler.deserializePlayersSets().isEmpty()) {
+		
 			// saving playerSet as the lastPlayerSet into the File
-			DataHandler.saveLastPlayersSet(players1);
+			DataHandler.saveLastPlayersSet(players);
 			// saving playerSet as a regular playerSet into the File
-			DataHandler.serializePlayersSet(players1);
+			DataHandler.serializePlayersSet(players);
 		}
 		// setting up the playerSet value
-		playersSet = players1;
+		playersSet = players;
 		logger.log(Level.INFO, "Saving counter from setPlayers, setting up the value =  " + Player.getCounter());
 		DataHandler.saveCounterIntoFile();
 	}
@@ -794,7 +805,7 @@ public class GameController implements ControllerInterface {
 	@Override
 	public void gameOverComplete() {
 		// closing the gameView window
-		logger.log(Level.INFO, "Closing the gameView window...");
+		// logger.log(Level.INFO, "Closing the gameView window...");
 		Platform.runLater(() -> {
 			gameView.getStage().close();
 			// show GUI main menu window
@@ -821,7 +832,7 @@ public class GameController implements ControllerInterface {
 	@Override
 	public void setLevel(String levelFromGUI) {
 		level = levelFromGUI;
-		logger.log(Level.INFO, levelFromGUI + " was set from GUI");
+		// logger.log(Level.INFO, levelFromGUI + " was set from GUI");
 	}
 
 	// returns all previously saved playersSets from local files in the ArrayList
@@ -857,14 +868,18 @@ public class GameController implements ControllerInterface {
 		ArrayList<Player> defaultPlayersList = new ArrayList<>();
 		defaultPlayersList.add(player1);
 		defaultPlayersList.add(player2);
-		System.out.println("default players list = " + defaultPlayersList);
 		setPlayers(defaultPlayersList);
 	}
 
 	// exits the app
 	@Override
 	public void exitApp() {
-		logger.log(Level.INFO, "Exiting the App...");
+		// logger.log(Level.INFO, "Exiting the App...");
 		System.exit(0);
+	}
+
+	@Override
+	public ArrayList<Player> getPlayersSet() {
+		return playersSet;
 	}
 }
